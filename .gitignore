@@ -32,6 +32,11 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# local content runtime (seed regenerates from defaults if missing)
+# keep data/content.json if you want shared defaults in repo
+/data/content.json
 
 # vercel
 .vercel
