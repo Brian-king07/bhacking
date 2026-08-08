@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { saveBrandAndNav, saveFooter } from "@/lib/content/actions";
 import type { FooterContent, NavLink } from "@/lib/content/types";
 import { SaveBar } from "@/components/admin/HeroEditor";
+import { isDirty } from "@/lib/admin/dirty";
+import { notifyResult } from "@/lib/admin/feedback";
 
 export function FooterNavEditor({
   brand,
@@ -16,15 +18,32 @@ export function FooterNavEditor({
 }) {
   const [brandValue, setBrandValue] = useState(brand);
   const [nav, setNav] = useState(navLinks);
+  const [savedBrand, setSavedBrand] = useState({ brand, navLinks });
   const [data, setData] = useState(footer);
-  const [message, setMessage] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
+  const [savedFooter, setSavedFooter] = useState(footer);
+  const [brandPending, startBrandTransition] = useTransition();
+  const [footerPending, startFooterTransition] = useTransition();
 
-  function saveAll() {
-    startTransition(async () => {
-      const a = await saveBrandAndNav({ brand: brandValue, navLinks: nav });
-      const b = await saveFooter(data);
-      setMessage(a.ok && b.ok ? "Footer y navegación guardados." : a.error || b.error || "Error");
+  const brandDirty = isDirty(
+    { brand: brandValue, navLinks: nav },
+    savedBrand,
+  );
+  const footerDirty = isDirty(data, savedFooter);
+
+  function saveBrandMenu() {
+    startBrandTransition(async () => {
+      const next = { brand: brandValue, navLinks: nav };
+      const result = await saveBrandAndNav(next);
+      if (result.ok) setSavedBrand(next);
+      notifyResult(result, "Marca y menú guardados");
+    });
+  }
+
+  function saveFooterOnly() {
+    startFooterTransition(async () => {
+      const result = await saveFooter(data);
+      if (result.ok) setSavedFooter(data);
+      notifyResult(result, "Footer guardado");
     });
   }
 
@@ -55,6 +74,11 @@ export function FooterNavEditor({
             />
           </div>
         ))}
+        <SaveBar
+          pending={brandPending}
+          dirty={brandDirty}
+          onSave={saveBrandMenu}
+        />
       </div>
 
       <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6">
@@ -84,7 +108,11 @@ export function FooterNavEditor({
           value={data.termsTitle}
           onChange={(v) => setData((d) => ({ ...d, termsTitle: v }))}
         />
-        <SaveBar pending={pending} message={message} onSave={saveAll} />
+        <SaveBar
+          pending={footerPending}
+          dirty={footerDirty}
+          onSave={saveFooterOnly}
+        />
       </div>
     </div>
   );

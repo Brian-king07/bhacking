@@ -13,7 +13,7 @@ export default async function AdminSectionsPage() {
     <AdminShell
       email={session.email}
       title="Secciones"
-      description="Muestra u oculta bloques, reordénalos o crea secciones nuevas."
+      description="Muestra u oculta bloques de la página y cambia su orden."
     >
       <SectionsEditor initial={content.sections} />
     </AdminShell>

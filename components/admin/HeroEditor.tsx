@@ -1,14 +1,22 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import type { HeroContent } from "@/lib/content/types";
 import { saveHero } from "@/lib/content/actions";
-import { ImageField } from "@/components/admin/ImageField";
+import { ImageField, type ImageFieldHandle } from "@/components/admin/ImageField";
+import { isDirty } from "@/lib/admin/dirty";
+import { notifyError, notifyResult } from "@/lib/admin/feedback";
+import { Button } from "@/components/ui/button";
 
 export function HeroEditor({ initial }: { initial: HeroContent }) {
   const [data, setData] = useState(initial);
-  const [message, setMessage] = useState<string | null>(null);
+  const [saved, setSaved] = useState(initial);
+  const [mobilePending, setMobilePending] = useState(false);
+  const [desktopPending, setDesktopPending] = useState(false);
   const [pending, startTransition] = useTransition();
+  const imageRef = useRef<ImageFieldHandle>(null);
+  const imageDesktopRef = useRef<ImageFieldHandle>(null);
+  const dirty = mobilePending || desktopPending || isDirty(data, saved);
 
   function update<K extends keyof HeroContent>(key: K, value: HeroContent[K]) {
     setData((d) => ({ ...d, [key]: value }));
@@ -16,17 +24,39 @@ export function HeroEditor({ initial }: { initial: HeroContent }) {
 
   function onSave() {
     startTransition(async () => {
-      const result = await saveHero(data);
-      setMessage(result.ok ? "Hero guardado." : result.error || "Error");
+      try {
+        const image = (await imageRef.current?.commit()) ?? data.image;
+        const imageDesktop =
+          (await imageDesktopRef.current?.commit()) ?? data.imageDesktop;
+        const next = { ...data, image, imageDesktop };
+        const result = await saveHero(next);
+        if (result.ok) {
+          setData(next);
+          setSaved(next);
+        }
+        notifyResult(result, "Hero guardado");
+      } catch {
+        notifyError("No se pudo subir la imagen");
+      }
     });
   }
 
   return (
     <div className="space-y-6 rounded-2xl border border-neutral-200 bg-white p-6">
       <ImageField
-        label="Foto del hero"
+        ref={imageRef}
+        label="Imagen mobile (vertical)"
         value={data.image}
         onChange={(url) => update("image", url)}
+        onPendingChange={setMobilePending}
+        bucket="hero"
+      />
+      <ImageField
+        ref={imageDesktopRef}
+        label="Imagen desktop (horizontal)"
+        value={data.imageDesktop}
+        onChange={(url) => update("imageDesktop", url)}
+        onPendingChange={setDesktopPending}
         bucket="hero"
       />
       {(
@@ -47,7 +77,7 @@ export function HeroEditor({ initial }: { initial: HeroContent }) {
           multiline={key === "subheadline"}
         />
       ))}
-      <SaveBar pending={pending} message={message} onSave={onSave} />
+      <SaveBar pending={pending} dirty={dirty} onSave={onSave} />
     </div>
   );
 }
@@ -88,24 +118,26 @@ function Field({
 
 export function SaveBar({
   pending,
-  message,
   onSave,
+  label = "Guardar cambios",
+  dirty = true,
 }: {
   pending: boolean;
-  message: string | null;
   onSave: () => void;
+  label?: string;
+  dirty?: boolean;
 }) {
   return (
     <div className="flex flex-wrap items-center gap-3 border-t border-neutral-100 pt-5">
-      <button
+      <Button
         type="button"
         onClick={onSave}
-        disabled={pending}
-        className="rounded-xl bg-neutral-950 px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+        disabled={pending || !dirty}
+        size="lg"
+        className="rounded-xl px-5"
       >
-        {pending ? "Guardando…" : "Guardar cambios"}
-      </button>
-      {message ? <p className="text-sm text-neutral-500">{message}</p> : null}
+        {pending ? "Guardando…" : label}
+      </Button>
     </div>
   );
 }

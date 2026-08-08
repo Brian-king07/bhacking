@@ -13,7 +13,7 @@ export default async function AdminHeroPage() {
     <AdminShell
       email={session.email}
       title="Hero"
-      description="Cambia la foto principal, textos y llamadas a la acción del banner."
+      description="Imagen mobile y desktop, textos y llamadas a la acción del banner."
     >
       <HeroEditor initial={content.hero} />
     </AdminShell>

@@ -1,36 +1,95 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import {
-  addProduct,
   deleteProduct,
   saveProductsSection,
   upsertProduct,
 } from "@/lib/content/actions";
 import type { ProductItem, ProductsSection } from "@/lib/content/types";
-import { ImageField } from "@/components/admin/ImageField";
+import { ImageField, type ImageFieldHandle } from "@/components/admin/ImageField";
 import { SaveBar } from "@/components/admin/HeroEditor";
+import { isDirty } from "@/lib/admin/dirty";
+import { notifyError, notifyResult, notifySuccess } from "@/lib/admin/feedback";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { createId } from "@/lib/content/id";
+
+const emptyProduct = (): ProductItem => ({
+  id: createId("prod"),
+  name: "",
+  price: "€0.00",
+  category: "men",
+  image:
+    "https://images.unsplash.com/photo-1523381216714-17e7e681f91e?auto=format&fit=crop&w=800&q=80",
+  alt: "",
+});
+
+function productsMeta(section: ProductsSection) {
+  return {
+    title: section.title,
+    description: section.description,
+  };
+}
 
 export function ProductsEditor({ initial }: { initial: ProductsSection }) {
   const [section, setSection] = useState(initial);
-  const [message, setMessage] = useState<string | null>(null);
+  const [savedMeta, setSavedMeta] = useState(productsMeta(initial));
   const [pending, startTransition] = useTransition();
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState<ProductItem>(emptyProduct);
+  const draftImageRef = useRef<ImageFieldHandle>(null);
+  const metaDirty = isDirty(productsMeta(section), savedMeta);
 
   function saveMeta() {
     startTransition(async () => {
-      const result = await saveProductsSection({
-        title: section.title,
-        description: section.description,
-      });
-      setMessage(result.ok ? "Sección guardada." : result.error || "Error");
+      const meta = productsMeta(section);
+      const result = await saveProductsSection(meta);
+      if (result.ok) setSavedMeta(meta);
+      notifyResult(result, "Sección de productos guardada");
     });
   }
 
-  function onAdd() {
+  function openCreateModal() {
+    setDraft(emptyProduct());
+    setOpen(true);
+  }
+
+  function onCreate() {
+    if (!draft.name.trim()) {
+      notifyError("El nombre del producto es obligatorio");
+      return;
+    }
+
     startTransition(async () => {
-      const result = await addProduct();
-      if (result.ok) window.location.reload();
-      else setMessage(result.error || "Error");
+      try {
+        const image = (await draftImageRef.current?.commit()) ?? draft.image;
+        const item: ProductItem = {
+          ...draft,
+          image,
+          name: draft.name.trim(),
+          alt: draft.alt.trim() || draft.name.trim(),
+        };
+        const result = await upsertProduct(item);
+        if (result.ok) {
+          setSection((s) => ({ ...s, items: [item, ...s.items] }));
+          setOpen(false);
+          notifySuccess("Producto agregado");
+        } else {
+          notifyError(result.error || "No se pudo agregar el producto");
+        }
+      } catch {
+        notifyError("No se pudo subir la imagen");
+      }
     });
   }
 
@@ -43,8 +102,10 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
           ...s,
           items: s.items.filter((i) => i.id !== id),
         }));
-        setMessage("Producto eliminado.");
-      } else setMessage(result.error || "Error");
+        notifySuccess("Producto eliminado");
+      } else {
+        notifyError(result.error || "No se pudo eliminar");
+      }
     });
   }
 
@@ -56,8 +117,10 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
           ...s,
           items: s.items.map((i) => (i.id === item.id ? item : i)),
         }));
-        setMessage("Producto guardado.");
-      } else setMessage(result.error || "Error");
+        notifySuccess("Producto guardado");
+      } else {
+        notifyError(result.error || "No se pudo guardar");
+      }
     });
   }
 
@@ -75,17 +138,99 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
           onChange={(v) => setSection((s) => ({ ...s, description: v }))}
           multiline
         />
-        <SaveBar pending={pending} message={message} onSave={saveMeta} />
+        <SaveBar pending={pending} dirty={metaDirty} onSave={saveMeta} />
       </div>
 
       <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={onAdd}
-          className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white"
-        >
+        <Button className="rounded-xl" onClick={openCreateModal}>
           Agregar producto
-        </button>
+        </Button>
+        <Dialog open={open} onOpenChange={setOpen}>
+          <DialogContent className="sm:max-w-lg" showCloseButton>
+            <DialogHeader>
+              <DialogTitle className="font-display text-xl">
+                Nuevo producto
+              </DialogTitle>
+              <DialogDescription>
+                Completa los datos. La imagen se sube al pulsar crear.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="max-h-[60vh] space-y-4 overflow-y-auto py-2">
+              <ImageField
+                ref={draftImageRef}
+                label="Foto"
+                value={draft.image}
+                onChange={(url) => setDraft((d) => ({ ...d, image: url }))}
+                bucket="products"
+              />
+              <div className="space-y-2">
+                <Label htmlFor="new-product-name">Nombre</Label>
+                <Input
+                  id="new-product-name"
+                  value={draft.name}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, name: e.target.value }))
+                  }
+                  placeholder="Ej. Camisa clásica"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-product-price">Precio (EUR)</Label>
+                <Input
+                  id="new-product-price"
+                  value={draft.price}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, price: e.target.value }))
+                  }
+                  placeholder="€26.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-product-alt">Texto alt</Label>
+                <Input
+                  id="new-product-alt"
+                  value={draft.alt}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, alt: e.target.value }))
+                  }
+                  placeholder="Descripción de la imagen"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-product-category">Categoría filtro</Label>
+                <select
+                  id="new-product-category"
+                  className="h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm"
+                  value={draft.category}
+                  onChange={(e) =>
+                    setDraft((d) => ({
+                      ...d,
+                      category: e.target.value as ProductItem["category"],
+                    }))
+                  }
+                >
+                  <option value="men">Hombre</option>
+                  <option value="women">Mujer</option>
+                </select>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+                disabled={pending}
+              >
+                Cancelar
+              </Button>
+              <Button type="button" onClick={onCreate} disabled={pending}>
+                {pending ? "Guardando…" : "Crear producto"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -115,6 +260,24 @@ function ProductCard({
   onDelete: (id: string) => void;
 }) {
   const [data, setData] = useState(item);
+  const [imagePending, setImagePending] = useState(false);
+  const imageRef = useRef<ImageFieldHandle>(null);
+  const [saving, setSaving] = useState(false);
+  const dirty = imagePending || isDirty(data, item);
+
+  async function handleSave() {
+    setSaving(true);
+    try {
+      const image = (await imageRef.current?.commit()) ?? data.image;
+      const next = { ...data, image };
+      setData(next);
+      onSave(next);
+    } catch {
+      notifyError("No se pudo subir la imagen");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-5">
@@ -129,8 +292,10 @@ function ProductCard({
         </button>
       </div>
       <ImageField
+        ref={imageRef}
         value={data.image}
         onChange={(url) => setData((d) => ({ ...d, image: url }))}
+        onPendingChange={setImagePending}
         bucket="products"
       />
       <TextField
@@ -139,7 +304,7 @@ function ProductCard({
         onChange={(v) => setData((d) => ({ ...d, name: v }))}
       />
       <TextField
-        label="Precio"
+        label="Precio (EUR)"
         value={data.price}
         onChange={(v) => setData((d) => ({ ...d, price: v }))}
       />
@@ -164,14 +329,14 @@ function ProductCard({
           <option value="women">Mujer</option>
         </select>
       </div>
-      <button
+      <Button
         type="button"
-        disabled={pending}
-        onClick={() => onSave(data)}
-        className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+        disabled={!dirty || pending || saving}
+        onClick={handleSave}
+        className="rounded-xl"
       >
-        Guardar producto
-      </button>
+        {saving ? "Guardando…" : "Guardar producto"}
+      </Button>
     </div>
   );
 }

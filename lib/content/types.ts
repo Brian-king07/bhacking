@@ -35,7 +35,10 @@ export type PopularItem = {
 };
 
 export type HeroContent = {
+  /** Imagen vertical / mobile */
   image: string;
+  /** Imagen horizontal / desktop (si está vacía, usa `image`) */
+  imageDesktop: string;
   brand: string;
   headline: string;
   subheadline: string;

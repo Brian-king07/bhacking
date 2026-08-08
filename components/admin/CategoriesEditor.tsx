@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import {
   addCategory,
   deleteCategory,
@@ -9,22 +9,31 @@ import {
 } from "@/lib/content/actions";
 import type { CategoriesSection, CategoryItem } from "@/lib/content/types";
 import { MIN_CATEGORIES } from "@/lib/content/types";
-import { ImageField } from "@/components/admin/ImageField";
+import { ImageField, type ImageFieldHandle } from "@/components/admin/ImageField";
 import { SaveBar } from "@/components/admin/HeroEditor";
+import { isDirty } from "@/lib/admin/dirty";
+import { notifyError, notifyResult, notifySuccess } from "@/lib/admin/feedback";
+
+function sectionMeta(section: CategoriesSection) {
+  return {
+    title: section.title,
+    description: section.description,
+    viewAllLabel: section.viewAllLabel,
+  };
+}
 
 export function CategoriesEditor({ initial }: { initial: CategoriesSection }) {
   const [section, setSection] = useState(initial);
-  const [message, setMessage] = useState<string | null>(null);
+  const [savedMeta, setSavedMeta] = useState(sectionMeta(initial));
   const [pending, startTransition] = useTransition();
+  const metaDirty = isDirty(sectionMeta(section), savedMeta);
 
   function saveMeta() {
     startTransition(async () => {
-      const result = await saveCategoriesSection({
-        title: section.title,
-        description: section.description,
-        viewAllLabel: section.viewAllLabel,
-      });
-      setMessage(result.ok ? "Textos de sección guardados." : result.error || "Error");
+      const meta = sectionMeta(section);
+      const result = await saveCategoriesSection(meta);
+      if (result.ok) setSavedMeta(meta);
+      notifyResult(result, "Textos de sección guardados");
     });
   }
 
@@ -34,17 +43,12 @@ export function CategoriesEditor({ initial }: { initial: CategoriesSection }) {
       if (result.ok) {
         setSection((s) => ({
           ...s,
-          items: s.items.map((i) => (i.id === item.id ? item : i.large && item.large ? { ...i, large: false } : i)),
-        }));
-        // refresh large flags locally
-        setSection((s) => ({
-          ...s,
           items: s.items.map((i) =>
             i.id === item.id ? item : item.large ? { ...i, large: false } : i,
           ),
         }));
-        setMessage("Categoría guardada.");
-      } else setMessage(result.error || "Error");
+        notifySuccess("Categoría guardada");
+      } else notifyError(result.error || "Error");
     });
   }
 
@@ -52,9 +56,9 @@ export function CategoriesEditor({ initial }: { initial: CategoriesSection }) {
     startTransition(async () => {
       const result = await addCategory();
       if (result.ok) {
-        setMessage("Categoría agregada. Recarga o edita la nueva.");
+        notifySuccess("Categoría agregada");
         window.location.reload();
-      } else setMessage(result.error || "Error");
+      } else notifyError(result.error || "Error");
     });
   }
 
@@ -67,8 +71,8 @@ export function CategoriesEditor({ initial }: { initial: CategoriesSection }) {
           ...s,
           items: s.items.filter((i) => i.id !== id),
         }));
-        setMessage("Categoría eliminada.");
-      } else setMessage(result.error || "Error");
+        notifySuccess("Categoría eliminada");
+      } else notifyError(result.error || "Error");
     });
   }
 
@@ -92,7 +96,7 @@ export function CategoriesEditor({ initial }: { initial: CategoriesSection }) {
           value={section.viewAllLabel}
           onChange={(v) => setSection((s) => ({ ...s, viewAllLabel: v }))}
         />
-        <SaveBar pending={pending} message={message} onSave={saveMeta} />
+        <SaveBar pending={pending} dirty={metaDirty} onSave={saveMeta} />
       </div>
 
       <div className="flex items-center justify-between">
@@ -139,6 +143,20 @@ function CategoryCard({
   onDelete: (id: string) => void;
 }) {
   const [data, setData] = useState(item);
+  const [imagePending, setImagePending] = useState(false);
+  const imageRef = useRef<ImageFieldHandle>(null);
+  const dirty = imagePending || isDirty(data, item);
+
+  async function handleSave() {
+    try {
+      const image = (await imageRef.current?.commit()) ?? data.image;
+      const next = { ...data, image };
+      setData(next);
+      onSave(next);
+    } catch {
+      notifyError("No se pudo subir la imagen");
+    }
+  }
 
   return (
     <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6">
@@ -157,9 +175,11 @@ function CategoryCard({
         )}
       </div>
       <ImageField
+        ref={imageRef}
         label="Portada"
         value={data.image}
         onChange={(url) => setData((d) => ({ ...d, image: url }))}
+        onPendingChange={setImagePending}
         bucket="categories"
       />
       <TextField
@@ -187,8 +207,8 @@ function CategoryCard({
       </label>
       <button
         type="button"
-        disabled={pending}
-        onClick={() => onSave(data)}
+        disabled={!dirty || pending}
+        onClick={handleSave}
         className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
       >
         Guardar categoría

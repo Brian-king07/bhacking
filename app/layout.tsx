@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, Syne } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
+import { cn } from "@/lib/utils";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -26,8 +28,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`${manrope.variable} ${syne.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+    <html
+      lang="es"
+      className={cn(manrope.variable, syne.variable, "h-full antialiased")}
+    >
+      <body className="flex min-h-full flex-col font-sans">
+        {children}
+        <Toaster />
+      </body>
     </html>
   );
 }

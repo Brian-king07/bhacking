@@ -22,7 +22,7 @@ export function CustomSection({ section }: { section: SectionConfig }) {
           <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
             {title}
           </h2>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-muted md:text-base">
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-muted-foreground md:text-base">
             {description}
           </p>
           {ctaLabel ? (

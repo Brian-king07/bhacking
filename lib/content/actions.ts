@@ -141,7 +141,7 @@ export async function addProduct(): Promise<ActionResult> {
     const item = {
       id: createId("prod"),
       name: "Nuevo producto",
-      price: "$0.00",
+      price: "€0.00",
       category: "men" as const,
       image:
         "https://images.unsplash.com/photo-1523381216714-17e7e681f91e?auto=format&fit=crop&w=800&q=80",
@@ -237,7 +237,7 @@ export async function addPopularItem(): Promise<ActionResult> {
     const item = {
       id: createId("pop"),
       name: "Nuevo destacado",
-      price: "$0.00",
+      price: "€0.00",
       description: "Descripción del producto popular.",
       image:
         "https://images.unsplash.com/photo-1523381216714-17e7e681f91e?auto=format&fit=crop&w=700&q=80",
@@ -299,69 +299,4 @@ export async function moveSection(
     sections[swapWith] = { ...sections[swapWith], order: tmp };
     return { ...c, sections };
   });
-}
-
-export async function addCustomSection(): Promise<ActionResult> {
-  return safeMutate((c) => {
-    const maxOrder = c.sections.reduce((m, s) => Math.max(m, s.order), 0);
-    const section = {
-      id: createId("sec"),
-      type: "custom" as const,
-      label: "Sección personalizada",
-      visible: true,
-      order: maxOrder + 1,
-      custom: {
-        title: "Nueva sección",
-        description: "Descripción de la sección personalizada.",
-        image:
-          "https://images.unsplash.com/photo-1441984904996-e0b14ba4ad63?auto=format&fit=crop&w=1400&q=80",
-        ctaLabel: "Ver más",
-        ctaHref: "#shop",
-      },
-    };
-    return { ...c, sections: [...c.sections, section] };
-  });
-}
-
-export async function updateCustomSection(
-  id: string,
-  data: {
-    label: string;
-    custom: NonNullable<SiteContent["sections"][number]["custom"]>;
-  },
-): Promise<ActionResult> {
-  return safeMutate((c) => ({
-    ...c,
-    sections: c.sections.map((s) =>
-      s.id === id && s.type === "custom"
-        ? { ...s, label: data.label, custom: data.custom }
-        : s,
-    ),
-  }));
-}
-
-export async function deleteSection(id: string): Promise<ActionResult> {
-  try {
-    await requireSession();
-    const content = await getContent();
-    const section = content.sections.find((s) => s.id === id);
-    if (!section) return { ok: false, error: "Sección no encontrada." };
-    if (section.type !== "custom") {
-      return {
-        ok: false,
-        error: "Las secciones base no se eliminan. Ocúltalas en su lugar.",
-      };
-    }
-    await updateContent((c) => ({
-      ...c,
-      sections: c.sections.filter((s) => s.id !== id),
-    }));
-    revalidateSite();
-    return { ok: true };
-  } catch (e) {
-    return {
-      ok: false,
-      error: e instanceof Error ? e.message : "Error inesperado",
-    };
-  }
 }

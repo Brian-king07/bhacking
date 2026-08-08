@@ -29,77 +29,79 @@ export function Header({
           : "bg-transparent py-6"
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-5 md:px-8">
-        <Link
-          href="#home"
-          className={`font-display text-2xl font-bold tracking-[0.08em] transition-colors duration-300 ${
-            scrolled ? "text-foreground" : "text-white"
-          }`}
-        >
-          {brand}
-        </Link>
+      <div className="px-5 md:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
+          <Link
+            href="#home"
+            className={`font-display text-2xl font-bold tracking-[0.08em] transition-colors duration-300 ${
+              scrolled ? "text-foreground" : "text-white"
+            }`}
+          >
+            {brand}
+          </Link>
 
-        <nav className="hidden items-center gap-10 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={`${link.href}-${link.label}`}
-              href={link.href}
-              className={`text-[13px] font-medium tracking-[0.14em] uppercase transition-opacity hover:opacity-70 ${
+          <nav className="hidden items-center gap-10 md:flex">
+            {navLinks.map((link) => (
+              <Link
+                key={`${link.href}-${link.label}`}
+                href={link.href}
+                className={`text-[13px] font-medium tracking-[0.14em] uppercase transition-opacity hover:opacity-70 ${
+                  scrolled ? "text-foreground" : "text-white"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              aria-label="Buscar"
+              className={`transition-opacity hover:opacity-70 ${
                 scrolled ? "text-foreground" : "text-white"
               }`}
             >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <button
-            type="button"
-            aria-label="Buscar"
-            className={`transition-opacity hover:opacity-70 ${
-              scrolled ? "text-foreground" : "text-white"
-            }`}
-          >
-            <SearchIcon />
-          </button>
-          <button
-            type="button"
-            aria-label="Carrito"
-            className={`transition-opacity hover:opacity-70 ${
-              scrolled ? "text-foreground" : "text-white"
-            }`}
-          >
-            <BagIcon />
-          </button>
-          <button
-            type="button"
-            aria-label="Cuenta"
-            className={`hidden transition-opacity hover:opacity-70 sm:inline-flex ${
-              scrolled ? "text-foreground" : "text-white"
-            }`}
-          >
-            <UserIcon />
-          </button>
-          <button
-            type="button"
-            aria-label="Menú"
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-            className={`md:hidden ${scrolled ? "text-foreground" : "text-white"}`}
-          >
-            <MenuIcon open={open} />
-          </button>
+              <SearchIcon />
+            </button>
+            {/* <button
+              type="button"
+              aria-label="Carrito"
+              className={`transition-opacity hover:opacity-70 ${
+                scrolled ? "text-foreground" : "text-white"
+              }`}
+            >
+              <BagIcon />
+            </button>
+            <button
+              type="button"
+              aria-label="Cuenta"
+              className={`hidden transition-opacity hover:opacity-70 sm:inline-flex ${
+                scrolled ? "text-foreground" : "text-white"
+              }`}
+            >
+              <UserIcon />
+            </button> */}
+            <button
+              type="button"
+              aria-label="Menú"
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+              className={`md:hidden ${scrolled ? "text-foreground" : "text-white"}`}
+            >
+              <MenuIcon open={open} />
+            </button>
+          </div>
         </div>
       </div>
 
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ${
+        className={`md:hidden overflow-hidden px-5 transition-all duration-300 md:px-8 ${
           open ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         <nav
-          className={`mx-5 mt-3 flex flex-col gap-4 rounded-xl px-5 py-5 ${
+          className={`mx-auto mt-3 flex max-w-7xl flex-col gap-4 rounded-xl px-5 py-5 ${
             scrolled ? "bg-white" : "bg-black/50 backdrop-blur-md"
           }`}
         >

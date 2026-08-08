@@ -69,8 +69,8 @@ export function Popular({ content }: { content: PopularSection }) {
             <h3 className="font-display text-lg font-bold tracking-[0.08em] uppercase md:text-xl">
               {item.name}
             </h3>
-            <p className="mt-2 text-base text-muted">{item.price}</p>
-            <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-muted">
+            <p className="mt-2 text-base text-muted-foreground">{item.price}</p>
+            <p className="mx-auto mt-5 max-w-md text-sm leading-relaxed text-muted-foreground">
               {item.description}
             </p>
             <Link
