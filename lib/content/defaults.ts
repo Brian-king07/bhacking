@@ -8,6 +8,15 @@ export const defaultContent: SiteContent = {
     { href: "#history", label: "Historia" },
     { href: "#news", label: "Novedades" },
   ],
+  contact: {
+    whatsappNumber: "34600000000",
+    instagramHandle: "bhacking",
+    whatsappMessageTemplate:
+      "Hola, me interesa *{name}* ({price}). ¿Me das más info?",
+    generalMessageTemplate: "Hola, quiero información sobre BHACKING.",
+    whatsappCtaLabel: "Consultar por WhatsApp",
+    instagramCtaLabel: "Escribir en Instagram",
+  },
   hero: {
     image:
       "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=2000&q=80",

@@ -1,5 +1,185 @@
-﻿-- Fix safeupdate: DELETE requiere WHERE
--- Pega esto en Supabase → SQL Editor → Run
+-- Contacto WhatsApp/Instagram en site_settings
+-- Pega en Supabase → SQL Editor → Run
+
+alter table public.site_settings
+  add column if not exists contact jsonb not null default '{}'::jsonb;
+
+update public.site_settings
+set contact = '{
+  "whatsappNumber": "34600000000",
+  "instagramHandle": "bhacking",
+  "whatsappMessageTemplate": "Hola, me interesa *{name}* ({price}). Me das mas info?",
+  "generalMessageTemplate": "Hola, quiero informacion sobre BHACKING.",
+  "whatsappCtaLabel": "Consultar por WhatsApp",
+  "instagramCtaLabel": "Escribir en Instagram"
+}'::jsonb
+where contact = '{}'::jsonb;
+
+
+create or replace function public.get_site_content()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = public
+as $$
+declare
+  result jsonb;
+begin
+  select jsonb_build_object(
+    'brand', coalesce((select brand from site_settings where id = 1), 'BHACKING'),
+    'contact', coalesce(
+      (select contact from site_settings where id = 1),
+      '{}'::jsonb
+    ),
+    'navLinks', coalesce((
+      select jsonb_agg(
+        jsonb_build_object('href', href, 'label', label)
+        order by sort_order
+      )
+      from nav_links
+    ), '[]'::jsonb),
+    'hero', (
+      select jsonb_build_object(
+        'image', image,
+        'imageDesktop', coalesce(nullif(image_desktop, ''), image),
+        'brand', brand,
+        'headline', headline,
+        'subheadline', subheadline,
+        'primaryCta', primary_cta,
+        'secondaryCta', secondary_cta,
+        'sideNote', side_note
+      )
+      from hero where id = 1
+    ),
+    'categories', jsonb_build_object(
+      'title', (select title from categories_section where id = 1),
+      'description', (select description from categories_section where id = 1),
+      'viewAllLabel', (select view_all_label from categories_section where id = 1),
+      'items', coalesce((
+        select jsonb_agg(
+          jsonb_build_object(
+            'id', id,
+            'title', title,
+            'cta', cta,
+            'image', image,
+            'alt', alt,
+            'large', is_large
+          )
+          order by sort_order
+        )
+        from categories
+      ), '[]'::jsonb)
+    ),
+    'products', jsonb_build_object(
+      'title', (select title from products_section where id = 1),
+      'description', (select description from products_section where id = 1),
+      'items', coalesce((
+        select jsonb_agg(
+          jsonb_build_object(
+            'id', id,
+            'name', name,
+            'price', price,
+            'category', category,
+            'image', image,
+            'alt', alt
+          )
+          order by sort_order
+        )
+        from products
+      ), '[]'::jsonb)
+    ),
+    'featured', jsonb_build_object(
+      'title', (select title from featured_section where id = 1),
+      'description', (select description from featured_section where id = 1),
+      'viewAllLabel', (select view_all_label from featured_section where id = 1),
+      'items', coalesce((
+        select jsonb_agg(
+          jsonb_build_object(
+            'id', id,
+            'handle', handle,
+            'image', image,
+            'alt', alt
+          )
+          order by sort_order
+        )
+        from featured_items
+      ), '[]'::jsonb)
+    ),
+    'popular', jsonb_build_object(
+      'title', (select title from popular_section where id = 1),
+      'portraitImage', (select portrait_image from popular_section where id = 1),
+      'portraitAlt', (select portrait_alt from popular_section where id = 1),
+      'items', coalesce((
+        select jsonb_agg(
+          jsonb_build_object(
+            'id', id,
+            'name', name,
+            'price', price,
+            'description', description,
+            'image', image,
+            'alt', alt
+          )
+          order by sort_order
+        )
+        from popular_items
+      ), '[]'::jsonb)
+    ),
+    'footer', jsonb_build_object(
+      'newsletterTitle', (select newsletter_title from footer_settings where id = 1),
+      'copyright', (select copyright from footer_settings where id = 1),
+      'sitemapTitle', (select sitemap_title from footer_settings where id = 1),
+      'availableTitle', (select available_title from footer_settings where id = 1),
+      'termsTitle', (select terms_title from footer_settings where id = 1),
+      'sitemapLinks', coalesce((
+        select jsonb_agg(jsonb_build_object('href', href, 'label', label) order by sort_order)
+        from footer_links where link_group = 'sitemap'
+      ), '[]'::jsonb),
+      'availableLinks', coalesce((
+        select jsonb_agg(jsonb_build_object('href', href, 'label', label) order by sort_order)
+        from footer_links where link_group = 'available'
+      ), '[]'::jsonb),
+      'termsLinks', coalesce((
+        select jsonb_agg(jsonb_build_object('href', href, 'label', label) order by sort_order)
+        from footer_links where link_group = 'terms'
+      ), '[]'::jsonb)
+    ),
+    'sections', coalesce((
+      select jsonb_agg(
+        case
+          when section_type = 'custom' then
+            jsonb_build_object(
+              'id', id,
+              'type', section_type,
+              'label', label,
+              'visible', visible,
+              'order', sort_order,
+              'custom', jsonb_build_object(
+                'title', coalesce(custom_title, ''),
+                'description', coalesce(custom_description, ''),
+                'image', coalesce(custom_image, ''),
+                'ctaLabel', coalesce(custom_cta_label, ''),
+                'ctaHref', coalesce(custom_cta_href, '')
+              )
+            )
+          else
+            jsonb_build_object(
+              'id', id,
+              'type', section_type,
+              'label', label,
+              'visible', visible,
+              'order', sort_order
+            )
+        end
+        order by sort_order
+      )
+      from page_sections
+    ), '[]'::jsonb)
+  ) into result;
+
+  return result;
+end;
+$$;
 
 create or replace function public.replace_site_content(payload jsonb)
 returns jsonb
@@ -83,6 +263,7 @@ begin
     view_all_label = excluded.view_all_label,
     updated_at = now();
 
+  -- Validado arriba: siempre quedan >= 3 categorías
   delete from categories where true;
   i := 0;
   for item in select * from jsonb_array_elements(coalesce(payload->'categories'->'items', '[]'::jsonb))
@@ -259,5 +440,7 @@ begin
 end;
 $$;
 
+revoke all on function public.get_site_content() from public;
 revoke all on function public.replace_site_content(jsonb) from public;
+grant execute on function public.get_site_content() to anon, authenticated, service_role;
 grant execute on function public.replace_site_content(jsonb) to service_role;

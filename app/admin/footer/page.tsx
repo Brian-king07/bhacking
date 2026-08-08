@@ -12,13 +12,14 @@ export default async function AdminFooterPage() {
   return (
     <AdminShell
       email={session.email}
-      title="Footer y navegación"
-      description="Marca, menú superior y textos del pie de página."
+      title="Footer, nav y contacto"
+      description="WhatsApp, Instagram, marca, menú y textos del pie."
     >
       <FooterNavEditor
         brand={content.brand}
         navLinks={content.navLinks}
         footer={content.footer}
+        contact={content.contact}
       />
     </AdminShell>
   );

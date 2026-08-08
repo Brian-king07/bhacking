@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Manrope, Syne } from "next/font/google";
+import { PwaRegister } from "@/components/PwaRegister";
 import { Toaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import "./globals.css";
@@ -17,9 +18,28 @@ const syne = Syne({
 });
 
 export const metadata: Metadata = {
-  title: "bhacking — Donde lo digital encuentra la moda",
+  title: "BHACKING — Donde lo digital encuentra la moda",
   description:
-    "Catálogo ecommerce bhacking: moda, accesorios y calzado curados para un guardarropa moderno y limpio.",
+    "Catálogo BHACKING: moda curada. Consulta disponibilidad y pedidos por WhatsApp.",
+  applicationName: "BHACKING",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "BHACKING",
+  },
+  icons: {
+    icon: [
+      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0a0a0a",
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -34,6 +54,7 @@ export default function RootLayout({
     >
       <body className="flex min-h-full flex-col font-sans">
         {children}
+        <PwaRegister />
         <Toaster />
       </body>
     </html>

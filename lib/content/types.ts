@@ -90,6 +90,19 @@ export type NavLink = {
   label: string;
 };
 
+export type ContactSettings = {
+  /** Solo dígitos con código de país, ej. 34600111222 */
+  whatsappNumber: string;
+  /** Sin @ */
+  instagramHandle: string;
+  /** Plantilla con {name}/{nombre} y {price}/{precio} */
+  whatsappMessageTemplate: string;
+  /** Mensaje general (sin producto) */
+  generalMessageTemplate: string;
+  whatsappCtaLabel: string;
+  instagramCtaLabel: string;
+};
+
 export type BuiltinSectionKey =
   | "hero"
   | "categories"
@@ -117,6 +130,7 @@ export type SectionConfig = {
 export type SiteContent = {
   brand: string;
   navLinks: NavLink[];
+  contact: ContactSettings;
   hero: HeroContent;
   categories: CategoriesSection;
   products: ProductsSection;

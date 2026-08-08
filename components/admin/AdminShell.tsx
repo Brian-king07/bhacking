@@ -9,7 +9,7 @@ const links = [
   { href: "/admin/colecciones", label: "Colecciones" },
   { href: "/admin/popular", label: "Popular" },
   { href: "/admin/secciones", label: "Secciones" },
-  { href: "/admin/footer", label: "Footer / Nav" },
+  { href: "/admin/footer", label: "Contacto / Footer" },
 ];
 
 export function AdminShell({
