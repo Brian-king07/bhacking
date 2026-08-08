@@ -130,7 +130,7 @@ export function NewestProducts({ content }: { content: ProductsSection }) {
 
 function ProductCard({ product }: { product: ProductItem }) {
   return (
-    <Link href="#shop" className="group block">
+    <Link href={`/producto/${product.id}`} className="group block">
       <div className="relative aspect-square overflow-hidden rounded-md bg-soft">
         <Image
           src={product.image}
@@ -141,7 +141,7 @@ function ProductCard({ product }: { product: ProductItem }) {
         />
       </div>
       <div className="mt-4 flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-medium tracking-wide md:text-base">
+        <h3 className="text-sm font-medium tracking-wide md:text-sm">
           {product.name}
         </h3>
         <p className="text-sm text-muted-foreground">{product.price}</p>

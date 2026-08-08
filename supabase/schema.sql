@@ -10,6 +10,14 @@
 create table if not exists public.site_settings (
   id int primary key default 1 check (id = 1),
   brand text not null default 'BHACKING',
+  contact jsonb not null default '{
+    "whatsappNumber": "34600000000",
+    "instagramHandle": "bhacking",
+    "whatsappMessageTemplate": "Hola, me interesa *{name}* ({price}). ¿Me das más info?",
+    "generalMessageTemplate": "Hola, quiero información sobre BHACKING.",
+    "whatsappCtaLabel": "Consultar por WhatsApp",
+    "instagramCtaLabel": "Escribir en Instagram"
+  }'::jsonb,
   updated_at timestamptz not null default now()
 );
 
@@ -153,6 +161,10 @@ declare
 begin
   select jsonb_build_object(
     'brand', coalesce((select brand from site_settings where id = 1), 'BHACKING'),
+    'contact', coalesce(
+      (select contact from site_settings where id = 1),
+      '{}'::jsonb
+    ),
     'navLinks', coalesce((
       select jsonb_agg(
         jsonb_build_object('href', href, 'label', label)
@@ -322,10 +334,17 @@ begin
     raise exception 'Debes mantener al menos 3 categorías';
   end if;
 
-  insert into site_settings (id, brand, updated_at)
-  values (1, coalesce(payload->>'brand', 'BHACKING'), now())
+  insert into site_settings (id, brand, contact, updated_at)
+  values (
+    1,
+    coalesce(payload->>'brand', 'BHACKING'),
+    coalesce(payload->'contact', '{}'::jsonb),
+    now()
+  )
   on conflict (id) do update
-    set brand = excluded.brand, updated_at = now();
+    set brand = excluded.brand,
+        contact = excluded.contact,
+        updated_at = now();
 
   delete from nav_links where true;
   i := 0;
@@ -654,6 +673,14 @@ using (bucket_id in ('hero','categories','products','featured','popular','sectio
 
 select public.replace_site_content('{
   "brand": "BHACKING",
+  "contact": {
+    "whatsappNumber": "34600000000",
+    "instagramHandle": "bhacking",
+    "whatsappMessageTemplate": "Hola, me interesa *{name}* ({price}). ¿Me das más info?",
+    "generalMessageTemplate": "Hola, quiero información sobre BHACKING.",
+    "whatsappCtaLabel": "Consultar por WhatsApp",
+    "instagramCtaLabel": "Escribir en Instagram"
+  },
   "navLinks": [
     {"href": "#home", "label": "Inicio"},
     {"href": "#shop", "label": "Tienda"},

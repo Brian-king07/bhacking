@@ -275,6 +275,12 @@ export async function saveBrandAndNav(data: {
   }));
 }
 
+export async function saveContact(
+  data: SiteContent["contact"],
+): Promise<ActionResult> {
+  return safeMutate((c) => ({ ...c, contact: data }));
+}
+
 export async function toggleSectionVisible(id: string): Promise<ActionResult> {
   return safeMutate((c) => ({
     ...c,

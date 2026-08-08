@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { NewestProducts } from "@/components/NewestProducts";
-import { Popular } from "@/components/Popular";
+import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 import { getContent } from "@/lib/content/store";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,11 @@ export default async function Home() {
 
   return (
     <>
-      <Header brand={content.brand} navLinks={content.navLinks} />
+      <Header
+        brand={content.brand}
+        navLinks={content.navLinks}
+        contact={content.contact}
+      />
       <main className="flex-1">
         {sections.map((section) => {
           switch (section.type) {
@@ -32,8 +36,6 @@ export default async function Home() {
               return (
                 <FeaturedCollection key={section.id} content={content.featured} />
               );
-            // case "popular":
-            //   return <Popular key={section.id} content={content.popular} />;
             case "custom":
               return <CustomSection key={section.id} section={section} />;
             default:
@@ -41,7 +43,12 @@ export default async function Home() {
           }
         })}
       </main>
-      <Footer brand={content.brand} content={content.footer} />
+      <Footer
+        brand={content.brand}
+        content={content.footer}
+        contact={content.contact}
+      />
+      <WhatsAppFloat contact={content.contact} />
     </>
   );
 }

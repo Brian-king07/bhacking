@@ -19,6 +19,7 @@ function mergeWithDefaults(parsed: Partial<SiteContent> | null): SiteContent {
     ...parsed,
     brand: parsed.brand || defaultContent.brand,
     navLinks: parsed.navLinks?.length ? parsed.navLinks : defaultContent.navLinks,
+    contact: { ...defaultContent.contact, ...parsed.contact },
     hero: { ...defaultContent.hero, ...parsed.hero },
     categories: {
       ...defaultContent.categories,
