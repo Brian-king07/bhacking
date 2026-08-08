@@ -1,6 +1,9 @@
 import { defaultContent } from "@/lib/content/defaults";
+import { createId } from "@/lib/content/id";
 import type { SiteContent } from "@/lib/content/types";
 import { createAnonClient, createServiceClient } from "@/lib/supabase/client";
+
+export { createId };
 
 function hasSupabaseEnv() {
   return Boolean(
@@ -111,8 +114,4 @@ export async function updateContent(
   const current = await getContent();
   const next = await updater(current);
   return writeContent(next);
-}
-
-export function createId(prefix = "id"): string {
-  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 }

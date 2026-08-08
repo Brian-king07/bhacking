@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
-import { createId } from "@/lib/content/store";
-import {
-  createServiceClient,
-  isMediaBucket,
-  publicStorageUrl,
-  type MediaBucket,
-} from "@/lib/supabase/client";
+import { createId } from "@/lib/content/id";
+import { isMediaBucket, type MediaBucket } from "@/lib/supabase/buckets";
+import { createServiceClient, publicStorageUrl } from "@/lib/supabase/client";
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ALLOWED = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);

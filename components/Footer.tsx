@@ -13,7 +13,7 @@ export function Footer({
   const columns = [
     { title: content.sitemapTitle, links: content.sitemapLinks },
     { title: content.availableTitle, links: content.availableLinks },
-    { title: content.termsTitle, links: content.termsLinks },
+    // { title: content.termsTitle, links: content.termsLinks },
   ];
 
   return (
@@ -24,10 +24,10 @@ export function Footer({
         </p>
       </div>
 
-      <div className="relative mx-auto grid max-w-7xl gap-12 sm:grid-cols-2 lg:grid-cols-4 lg:gap-8">
+      <div className="relative mx-auto flex flex-col lg:flex-row max-w-7xl justify-between gap-12  lg:gap-8">
         {columns.map((column) => (
           <div key={column.title}>
-            <h3 className="text-xs font-semibold tracking-[0.18em] text-muted uppercase">
+            <h3 className="text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
               {column.title}
             </h3>
             <ul className="mt-5 space-y-3">
@@ -64,7 +64,7 @@ export function Footer({
               type="email"
               required
               placeholder="Tu correo electrónico"
-              className="w-full rounded-full border border-line bg-surface px-5 py-3 text-sm outline-none transition-colors placeholder:text-muted focus:border-foreground"
+              className="w-full rounded-full border border-line bg-surface px-5 py-3 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground"
             />
             <button
               type="submit"
@@ -77,7 +77,7 @@ export function Footer({
       </div>
 
       <div className="relative mx-auto mt-16 max-w-7xl border-t border-line/80 pt-6">
-        <p className="text-center text-xs tracking-wide text-muted">{content.copyright}</p>
+        <p className="text-center text-xs tracking-wide text-muted-foreground">{content.copyright}</p>
       </div>
     </footer>
   );

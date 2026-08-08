@@ -26,7 +26,7 @@ export function AdminShell({
   return (
     <div className="min-h-screen bg-neutral-100 text-neutral-900">
       <div className="mx-auto flex min-h-screen  flex-col lg:flex-row">
-        <aside className="border-b border-neutral-200 bg-white lg:w-64 lg:border-r lg:border-b-0">
+        <aside className="border-b border-neutral-200 bg-white lg:w-64 lg:border-r lg:border-b-0 fixed top-0 left-0 h-screen">
           <div className="flex items-center justify-between px-5 py-5 lg:block">
             <div>
               <p className="font-display text-lg font-bold tracking-[0.12em]">BHACKING</p>
@@ -64,7 +64,7 @@ export function AdminShell({
           </div>
         </aside>
 
-        <main className="flex-1 px-5 py-8 md:px-8 max-w-6xl">
+        <main className="flex-1 px-5 py-8 md:px-8 max-w-6xl ml-64">
           <header className="mb-8">
             <h1 className="font-display text-3xl font-bold tracking-tight">{title}</h1>
             {description ? (

@@ -4,14 +4,14 @@ import type { FeaturedSection } from "@/lib/content/types";
 
 export function FeaturedCollection({ content }: { content: FeaturedSection }) {
   return (
-    <section id="history" className="bg-background px-5 py-20 md:px-8 md:py-28">
+    <section id="collection" className="bg-background px-5 py-20 md:px-8 md:py-28">
       <div className="mx-auto max-w-7xl">
         <div className="mb-10 flex flex-col gap-4 sm:mb-14 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
               {content.title}
             </h2>
-            <p className="mt-3 max-w-md text-sm leading-relaxed text-muted md:text-base">
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground md:text-base">
               {content.description}
             </p>
           </div>
@@ -26,7 +26,7 @@ export function FeaturedCollection({ content }: { content: FeaturedSection }) {
         <div className="grid gap-5 sm:grid-cols-3">
           {content.items.map((item) => (
             <Link key={item.id} href="#shop" className="group block">
-              <div className="relative aspect-[3/4] overflow-hidden rounded-md bg-soft">
+              <div className="relative lg:h-[85vh] h-[50vh] w-full overflow-hidden rounded-md bg-soft">
                 <Image
                   src={item.image}
                   alt={item.alt}
@@ -35,7 +35,7 @@ export function FeaturedCollection({ content }: { content: FeaturedSection }) {
                   sizes="(max-width:640px) 100vw, 33vw"
                 />
               </div>
-              <p className="mt-4 text-sm tracking-wide text-muted transition-colors group-hover:text-foreground">
+              <p className="mt-4 text-sm tracking-wide text-muted-foreground transition-colors group-hover:text-foreground">
                 {item.handle}
               </p>
             </Link>

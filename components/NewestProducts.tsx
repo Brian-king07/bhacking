@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ProductItem, ProductsSection } from "@/lib/content/types";
+
+const PAGE_SIZE = 6;
 
 const filters = [
   { id: "all", label: "Todos" },
@@ -15,11 +17,27 @@ type FilterId = (typeof filters)[number]["id"];
 
 export function NewestProducts({ content }: { content: ProductsSection }) {
   const [active, setActive] = useState<FilterId>("all");
+  const [page, setPage] = useState(1);
 
-  const visible =
-    active === "all"
-      ? content.items
-      : content.items.filter((p) => p.category === active);
+  const filtered = useMemo(
+    () =>
+      active === "all"
+        ? content.items
+        : content.items.filter((p) => p.category === active),
+    [active, content.items],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const visible = filtered.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
+  function changeFilter(id: FilterId) {
+    setActive(id);
+    setPage(1);
+  }
 
   return (
     <section id="shop" className="bg-surface px-5 py-20 md:px-8 md:py-28">
@@ -28,7 +46,7 @@ export function NewestProducts({ content }: { content: ProductsSection }) {
           <h2 className="font-display text-3xl font-bold tracking-tight md:text-4xl">
             {content.title}
           </h2>
-          <p className="mt-3 text-sm leading-relaxed text-muted md:text-base">
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground md:text-base">
             {content.description}
           </p>
         </div>
@@ -40,7 +58,7 @@ export function NewestProducts({ content }: { content: ProductsSection }) {
               <button
                 key={filter.id}
                 type="button"
-                onClick={() => setActive(filter.id)}
+                onClick={() => changeFilter(filter.id)}
                 className={`rounded-full px-5 py-2.5 text-sm font-medium tracking-wide transition-all duration-300 ${
                   isActive
                     ? "bg-foreground text-white"
@@ -58,6 +76,53 @@ export function NewestProducts({ content }: { content: ProductsSection }) {
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
+
+        {filtered.length === 0 ? (
+          <p className="mt-10 text-center text-sm text-muted-foreground">
+            No hay productos en esta categoría.
+          </p>
+        ) : null}
+
+        {totalPages > 1 ? (
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              disabled={currentPage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="rounded-full px-4 py-2 text-sm font-medium tracking-wide text-foreground transition-opacity hover:opacity-70 disabled:pointer-events-none disabled:opacity-30"
+            >
+              Anterior
+            </button>
+
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => {
+              const isCurrent = n === currentPage;
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  aria-current={isCurrent ? "page" : undefined}
+                  onClick={() => setPage(n)}
+                  className={`min-w-10 rounded-full px-3 py-2 text-sm font-medium tracking-wide transition-all duration-300 ${
+                    isCurrent
+                      ? "bg-foreground text-white"
+                      : "text-foreground hover:bg-soft"
+                  }`}
+                >
+                  {n}
+                </button>
+              );
+            })}
+
+            <button
+              type="button"
+              disabled={currentPage >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="rounded-full px-4 py-2 text-sm font-medium tracking-wide text-foreground transition-opacity hover:opacity-70 disabled:pointer-events-none disabled:opacity-30"
+            >
+              Siguiente
+            </button>
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -66,7 +131,7 @@ export function NewestProducts({ content }: { content: ProductsSection }) {
 function ProductCard({ product }: { product: ProductItem }) {
   return (
     <Link href="#shop" className="group block">
-      <div className="relative aspect-[4/5] overflow-hidden rounded-md bg-soft">
+      <div className="relative aspect-square overflow-hidden rounded-md bg-soft">
         <Image
           src={product.image}
           alt={product.alt}
@@ -76,8 +141,10 @@ function ProductCard({ product }: { product: ProductItem }) {
         />
       </div>
       <div className="mt-4 flex items-baseline justify-between gap-3">
-        <h3 className="text-sm font-medium tracking-wide md:text-base">{product.name}</h3>
-        <p className="text-sm text-muted">{product.price}</p>
+        <h3 className="text-sm font-medium tracking-wide md:text-base">
+          {product.name}
+        </h3>
+        <p className="text-sm text-muted-foreground">{product.price}</p>
       </div>
     </Link>
   );

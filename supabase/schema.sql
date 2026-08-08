@@ -23,6 +23,7 @@ create table if not exists public.nav_links (
 create table if not exists public.hero (
   id int primary key default 1 check (id = 1),
   image text not null,
+  image_desktop text not null default '',
   brand text not null,
   headline text not null,
   subheadline text not null,
@@ -162,6 +163,7 @@ begin
     'hero', (
       select jsonb_build_object(
         'image', image,
+        'imageDesktop', coalesce(nullif(image_desktop, ''), image),
         'brand', brand,
         'headline', headline,
         'subheadline', subheadline,
@@ -325,7 +327,7 @@ begin
   on conflict (id) do update
     set brand = excluded.brand, updated_at = now();
 
-  delete from nav_links;
+  delete from nav_links where true;
   i := 0;
   for item in select * from jsonb_array_elements(coalesce(payload->'navLinks', '[]'::jsonb))
   loop
@@ -340,11 +342,12 @@ begin
   end loop;
 
   insert into hero (
-    id, image, brand, headline, subheadline, primary_cta, secondary_cta, side_note, updated_at
+    id, image, image_desktop, brand, headline, subheadline, primary_cta, secondary_cta, side_note, updated_at
   )
   values (
     1,
     payload->'hero'->>'image',
+    coalesce(payload->'hero'->>'imageDesktop', payload->'hero'->>'image', ''),
     payload->'hero'->>'brand',
     payload->'hero'->>'headline',
     payload->'hero'->>'subheadline',
@@ -355,6 +358,7 @@ begin
   )
   on conflict (id) do update set
     image = excluded.image,
+    image_desktop = excluded.image_desktop,
     brand = excluded.brand,
     headline = excluded.headline,
     subheadline = excluded.subheadline,
@@ -378,7 +382,7 @@ begin
     updated_at = now();
 
   -- Validado arriba: siempre quedan >= 3 categorías
-  delete from categories;
+  delete from categories where true;
   i := 0;
   for item in select * from jsonb_array_elements(coalesce(payload->'categories'->'items', '[]'::jsonb))
   loop
@@ -407,7 +411,7 @@ begin
     description = excluded.description,
     updated_at = now();
 
-  delete from products;
+  delete from products where true;
   i := 0;
   for item in select * from jsonb_array_elements(coalesce(payload->'products'->'items', '[]'::jsonb))
   loop
@@ -438,7 +442,7 @@ begin
     view_all_label = excluded.view_all_label,
     updated_at = now();
 
-  delete from featured_items;
+  delete from featured_items where true;
   i := 0;
   for item in select * from jsonb_array_elements(coalesce(payload->'featured'->'items', '[]'::jsonb))
   loop
@@ -467,7 +471,7 @@ begin
     portrait_alt = excluded.portrait_alt,
     updated_at = now();
 
-  delete from popular_items;
+  delete from popular_items where true;
   i := 0;
   for item in select * from jsonb_array_elements(coalesce(payload->'popular'->'items', '[]'::jsonb))
   loop
@@ -504,7 +508,7 @@ begin
     terms_title = excluded.terms_title,
     updated_at = now();
 
-  delete from footer_links;
+  delete from footer_links where true;
   i := 0;
   for item in select * from jsonb_array_elements(coalesce(payload->'footer'->'sitemapLinks', '[]'::jsonb))
   loop
@@ -527,7 +531,7 @@ begin
     i := i + 1;
   end loop;
 
-  delete from page_sections;
+  delete from page_sections where true;
   i := 0;
   for item in select * from jsonb_array_elements(coalesce(payload->'sections', '[]'::jsonb))
   loop
@@ -658,6 +662,7 @@ select public.replace_site_content('{
   ],
   "hero": {
     "image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=2000&q=80",
+    "imageDesktop": "https://images.unsplash.com/photo-1441984904996-e0b14ba4ad63?auto=format&fit=crop&w=2000&q=80",
     "brand": "BHACKING",
     "headline": "Donde lo digital encuentra la moda",
     "subheadline": "Experiencias únicas pensadas para que comprar sea más simple y elegante.",
@@ -703,7 +708,7 @@ select public.replace_site_content('{
       {
         "id": "1",
         "name": "Camisa Clásica",
-        "price": "$26.00",
+        "price": "€26.00",
         "category": "men",
         "image": "https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=800&q=80",
         "alt": "Modelo con camisa clásica beige"
@@ -711,7 +716,7 @@ select public.replace_site_content('{
       {
         "id": "2",
         "name": "Hoodie Suave",
-        "price": "$18.00",
+        "price": "€18.00",
         "category": "women",
         "image": "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&w=800&q=80",
         "alt": "Modelo con hoodie crema"
@@ -719,7 +724,7 @@ select public.replace_site_content('{
       {
         "id": "3",
         "name": "Chaqueta Urbana",
-        "price": "$42.00",
+        "price": "€42.00",
         "category": "men",
         "image": "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&q=80",
         "alt": "Modelo con chaqueta urbana"
@@ -727,7 +732,7 @@ select public.replace_site_content('{
       {
         "id": "4",
         "name": "Blusa de Lino",
-        "price": "$29.00",
+        "price": "€29.00",
         "category": "women",
         "image": "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80",
         "alt": "Mujer con blusa de lino clara"
@@ -735,7 +740,7 @@ select public.replace_site_content('{
       {
         "id": "5",
         "name": "Abrigo Studio",
-        "price": "$58.00",
+        "price": "€58.00",
         "category": "men",
         "image": "https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&w=800&q=80",
         "alt": "Abrigo sastre de estudio"
@@ -743,7 +748,7 @@ select public.replace_site_content('{
       {
         "id": "6",
         "name": "Punto Diario",
-        "price": "$32.00",
+        "price": "€32.00",
         "category": "women",
         "image": "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=800&q=80",
         "alt": "Mujer con conjunto de punto"
@@ -783,7 +788,7 @@ select public.replace_site_content('{
       {
         "id": "p1",
         "name": "Pantalón con Chaleco",
-        "price": "$120.00",
+        "price": "€120.00",
         "description": "Una silueta refinada para la temporada: chaleco estructurado con pantalón sastre en tonos arena.",
         "image": "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=700&q=80",
         "alt": "Conjunto de pantalón y chaleco en arena"
@@ -791,7 +796,7 @@ select public.replace_site_content('{
       {
         "id": "p2",
         "name": "Sobrecamisa de Algodón",
-        "price": "$78.00",
+        "price": "€78.00",
         "description": "Capa ligera con costuras limpias y caída relajada — ideal para el día a día y el clima de transición.",
         "image": "https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=700&q=80",
         "alt": "Detalle de sobrecamisa de algodón"
@@ -799,7 +804,7 @@ select public.replace_site_content('{
       {
         "id": "p3",
         "name": "Blazer Studio",
-        "price": "$145.00",
+        "price": "€145.00",
         "description": "Líneas nítidas y lana suave. Un básico elevado para ir del día a la noche con naturalidad.",
         "image": "https://images.unsplash.com/photo-1591369822096-ffd140ec948f?auto=format&fit=crop&w=700&q=80",
         "alt": "Look con blazer de estudio"
@@ -808,7 +813,7 @@ select public.replace_site_content('{
   },
   "footer": {
     "newsletterTitle": "Mantente inspirado y elegante",
-    "copyright": "© 2024 bhacking. Todos los derechos reservados",
+    "copyright": "© 2026 bhacking. Todos los derechos reservados",
     "sitemapTitle": "Mapa del sitio",
     "availableTitle": "Disponible",
     "termsTitle": "Términos y privacidad",

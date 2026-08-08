@@ -11,6 +11,8 @@ export const defaultContent: SiteContent = {
   hero: {
     image:
       "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=2000&q=80",
+    imageDesktop:
+      "https://images.unsplash.com/photo-1441984904996-e0b14ba4ad63?auto=format&fit=crop&w=2000&q=80",
     brand: "BHACKING",
     headline: "Donde lo digital encuentra la moda",
     subheadline:
@@ -62,7 +64,7 @@ export const defaultContent: SiteContent = {
       {
         id: "1",
         name: "Camisa Clásica",
-        price: "$26.00",
+        price: "€26.00",
         category: "men",
         image:
           "https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=800&q=80",
@@ -71,7 +73,7 @@ export const defaultContent: SiteContent = {
       {
         id: "2",
         name: "Hoodie Suave",
-        price: "$18.00",
+        price: "€18.00",
         category: "women",
         image:
           "https://images.unsplash.com/photo-1552374196-1ab2a1c593e8?auto=format&fit=crop&w=800&q=80",
@@ -80,7 +82,7 @@ export const defaultContent: SiteContent = {
       {
         id: "3",
         name: "Chaqueta Urbana",
-        price: "$42.00",
+        price: "€42.00",
         category: "men",
         image:
           "https://images.unsplash.com/photo-1509631179647-0177331693ae?auto=format&fit=crop&w=800&q=80",
@@ -89,7 +91,7 @@ export const defaultContent: SiteContent = {
       {
         id: "4",
         name: "Blusa de Lino",
-        price: "$29.00",
+        price: "€29.00",
         category: "women",
         image:
           "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=80",
@@ -98,7 +100,7 @@ export const defaultContent: SiteContent = {
       {
         id: "5",
         name: "Abrigo Studio",
-        price: "$58.00",
+        price: "€58.00",
         category: "men",
         image:
           "https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?auto=format&fit=crop&w=800&q=80",
@@ -107,7 +109,7 @@ export const defaultContent: SiteContent = {
       {
         id: "6",
         name: "Punto Diario",
-        price: "$32.00",
+        price: "€32.00",
         category: "women",
         image:
           "https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=800&q=80",
@@ -153,7 +155,7 @@ export const defaultContent: SiteContent = {
       {
         id: "p1",
         name: "Pantalón con Chaleco",
-        price: "$120.00",
+        price: "€120.00",
         description:
           "Una silueta refinada para la temporada: chaleco estructurado con pantalón sastre en tonos arena.",
         image:
@@ -163,7 +165,7 @@ export const defaultContent: SiteContent = {
       {
         id: "p2",
         name: "Sobrecamisa de Algodón",
-        price: "$78.00",
+        price: "€78.00",
         description:
           "Capa ligera con costuras limpias y caída relajada — ideal para el día a día y el clima de transición.",
         image:
@@ -173,7 +175,7 @@ export const defaultContent: SiteContent = {
       {
         id: "p3",
         name: "Blazer Studio",
-        price: "$145.00",
+        price: "€145.00",
         description:
           "Líneas nítidas y lana suave. Un básico elevado para ir del día a la noche con naturalidad.",
         image:
@@ -184,7 +186,7 @@ export const defaultContent: SiteContent = {
   },
   footer: {
     newsletterTitle: "Mantente inspirado y elegante",
-    copyright: "© 2024 bhacking. Todos los derechos reservados",
+    copyright: "© 2026 bhacking. Todos los derechos reservados",
     sitemapTitle: "Mapa del sitio",
     availableTitle: "Disponible",
     termsTitle: "Términos y privacidad",

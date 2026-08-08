@@ -11,7 +11,9 @@ function requireEnv(name: string): string {
 }
 
 export function getSupabaseUrl(): string {
-  return requireEnv("NEXT_PUBLIC_SUPABASE_URL");
+  const raw = requireEnv("NEXT_PUBLIC_SUPABASE_URL").trim();
+  // Solo el origen del proyecto: sin /rest/v1 ni slash final
+  return raw.replace(/\/+$/, "").replace(/\/rest\/v1$/i, "");
 }
 
 /** Cliente público (lectura). */
@@ -36,21 +38,11 @@ export function createServiceClient(): SupabaseClient {
   );
 }
 
-export const MEDIA_BUCKETS = [
-  "hero",
-  "categories",
-  "products",
-  "featured",
-  "popular",
-  "sections",
-  "media",
-] as const;
-
-export type MediaBucket = (typeof MEDIA_BUCKETS)[number];
-
-export function isMediaBucket(value: string): value is MediaBucket {
-  return (MEDIA_BUCKETS as readonly string[]).includes(value);
-}
+export {
+  MEDIA_BUCKETS,
+  isMediaBucket,
+  type MediaBucket,
+} from "@/lib/supabase/buckets";
 
 export function publicStorageUrl(bucket: string, path: string): string {
   const base = getSupabaseUrl().replace(/\/$/, "");

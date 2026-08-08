@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import {
   addPopularItem,
   deletePopularItem,
@@ -8,22 +8,47 @@ import {
   upsertPopularItem,
 } from "@/lib/content/actions";
 import type { PopularItem, PopularSection } from "@/lib/content/types";
-import { ImageField } from "@/components/admin/ImageField";
+import { ImageField, type ImageFieldHandle } from "@/components/admin/ImageField";
 import { SaveBar } from "@/components/admin/HeroEditor";
+import { isDirty } from "@/lib/admin/dirty";
+import { notifyError, notifyResult, notifySuccess } from "@/lib/admin/feedback";
+
+function sectionMeta(section: PopularSection) {
+  return {
+    title: section.title,
+    portraitImage: section.portraitImage,
+    portraitAlt: section.portraitAlt,
+  };
+}
 
 export function PopularEditor({ initial }: { initial: PopularSection }) {
   const [section, setSection] = useState(initial);
-  const [message, setMessage] = useState<string | null>(null);
+  const [savedMeta, setSavedMeta] = useState(sectionMeta(initial));
+  const [portraitPending, setPortraitPending] = useState(false);
   const [pending, startTransition] = useTransition();
+  const portraitRef = useRef<ImageFieldHandle>(null);
+  const metaDirty =
+    portraitPending || isDirty(sectionMeta(section), savedMeta);
 
   function saveMeta() {
     startTransition(async () => {
-      const result = await savePopularSection({
-        title: section.title,
-        portraitImage: section.portraitImage,
-        portraitAlt: section.portraitAlt,
-      });
-      setMessage(result.ok ? "Sección guardada." : result.error || "Error");
+      try {
+        const portraitImage =
+          (await portraitRef.current?.commit()) ?? section.portraitImage;
+        const meta = {
+          title: section.title,
+          portraitImage,
+          portraitAlt: section.portraitAlt,
+        };
+        const result = await savePopularSection(meta);
+        if (result.ok) {
+          setSection((s) => ({ ...s, portraitImage }));
+          setSavedMeta(meta);
+        }
+        notifyResult(result, "Sección guardada");
+      } catch {
+        notifyError("No se pudo subir la imagen");
+      }
     });
   }
 
@@ -36,9 +61,11 @@ export function PopularEditor({ initial }: { initial: PopularSection }) {
           onChange={(v) => setSection((s) => ({ ...s, title: v }))}
         />
         <ImageField
+          ref={portraitRef}
           label="Retrato grande"
           value={section.portraitImage}
           onChange={(url) => setSection((s) => ({ ...s, portraitImage: url }))}
+          onPendingChange={setPortraitPending}
           bucket="popular"
         />
         <Field
@@ -46,7 +73,7 @@ export function PopularEditor({ initial }: { initial: PopularSection }) {
           value={section.portraitAlt}
           onChange={(v) => setSection((s) => ({ ...s, portraitAlt: v }))}
         />
-        <SaveBar pending={pending} message={message} onSave={saveMeta} />
+        <SaveBar pending={pending} dirty={metaDirty} onSave={saveMeta} />
       </div>
 
       <div className="flex justify-end">
@@ -55,8 +82,10 @@ export function PopularEditor({ initial }: { initial: PopularSection }) {
           onClick={() =>
             startTransition(async () => {
               const result = await addPopularItem();
-              if (result.ok) window.location.reload();
-              else setMessage(result.error || "Error");
+              if (result.ok) {
+                notifySuccess("Producto popular agregado");
+                window.location.reload();
+              } else notifyError(result.error || "Error");
             })
           }
           className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white"
@@ -79,8 +108,8 @@ export function PopularEditor({ initial }: { initial: PopularSection }) {
                     ...s,
                     items: s.items.map((i) => (i.id === next.id ? next : i)),
                   }));
-                  setMessage("Producto popular guardado.");
-                } else setMessage(result.error || "Error");
+                  notifySuccess("Producto popular guardado");
+                } else notifyError(result.error || "Error");
               })
             }
             onDelete={(id) => {
@@ -92,8 +121,8 @@ export function PopularEditor({ initial }: { initial: PopularSection }) {
                     ...s,
                     items: s.items.filter((i) => i.id !== id),
                   }));
-                  setMessage("Eliminado.");
-                } else setMessage(result.error || "Error");
+                  notifySuccess("Eliminado");
+                } else notifyError(result.error || "Error");
               });
             }}
           />
@@ -115,6 +144,21 @@ function PopularCard({
   onDelete: (id: string) => void;
 }) {
   const [data, setData] = useState(item);
+  const [imagePending, setImagePending] = useState(false);
+  const imageRef = useRef<ImageFieldHandle>(null);
+  const dirty = imagePending || isDirty(data, item);
+
+  async function handleSave() {
+    try {
+      const image = (await imageRef.current?.commit()) ?? data.image;
+      const next = { ...data, image };
+      setData(next);
+      onSave(next);
+    } catch {
+      notifyError("No se pudo subir la imagen");
+    }
+  }
+
   return (
     <div className="space-y-3 rounded-2xl border border-neutral-200 bg-white p-5">
       <div className="flex justify-between">
@@ -128,8 +172,10 @@ function PopularCard({
         </button>
       </div>
       <ImageField
+        ref={imageRef}
         value={data.image}
         onChange={(url) => setData((d) => ({ ...d, image: url }))}
+        onPendingChange={setImagePending}
         bucket="popular"
       />
       <Field
@@ -138,7 +184,7 @@ function PopularCard({
         onChange={(v) => setData((d) => ({ ...d, name: v }))}
       />
       <Field
-        label="Precio"
+        label="Precio (EUR)"
         value={data.price}
         onChange={(v) => setData((d) => ({ ...d, price: v }))}
       />
@@ -155,8 +201,8 @@ function PopularCard({
       />
       <button
         type="button"
-        disabled={pending}
-        onClick={() => onSave(data)}
+        disabled={!dirty || pending}
+        onClick={handleSave}
         className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
       >
         Guardar
