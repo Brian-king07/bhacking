@@ -32,6 +32,7 @@ const emptyProduct = (): ProductItem => ({
   image:
     "https://images.unsplash.com/photo-1523381216714-17e7e681f91e?auto=format&fit=crop&w=800&q=80",
   alt: "",
+  description: "",
 });
 
 function productsMeta(section: ProductsSection) {
@@ -78,6 +79,7 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
           image,
           name: draft.name.trim(),
           alt: draft.alt.trim() || draft.name.trim(),
+          description: draft.description?.trim() || "",
         };
         const result = await upsertProduct(item);
         if (result.ok) {
@@ -198,6 +200,21 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="new-product-description">
+                  Descripción (opcional)
+                </Label>
+                <textarea
+                  id="new-product-description"
+                  rows={3}
+                  className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
+                  value={draft.description ?? ""}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, description: e.target.value }))
+                  }
+                  placeholder="Materiales, fit, ocasión…"
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="new-product-category">Categoría filtro</Label>
                 <select
                   id="new-product-category"
@@ -312,6 +329,12 @@ function ProductCard({
         label="Alt"
         value={data.alt}
         onChange={(v) => setData((d) => ({ ...d, alt: v }))}
+      />
+      <TextField
+        label="Descripción (opcional)"
+        value={data.description ?? ""}
+        onChange={(v) => setData((d) => ({ ...d, description: v }))}
+        multiline
       />
       <div>
         <label className="mb-1.5 block text-sm font-medium">Categoría filtro</label>

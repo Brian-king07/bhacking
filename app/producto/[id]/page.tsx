@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -13,6 +14,28 @@ import { getContent } from "@/lib/content/store";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const content = await getContent();
+  const product = content.products.items.find((p) => p.id === id);
+  if (!product) return { title: "Producto no encontrado — BHACKING" };
+  return {
+    title: `${product.name} — BHACKING`,
+    description:
+      product.description?.trim() ||
+      `${product.name} · ${product.price}. Consulta por WhatsApp.`,
+    openGraph: {
+      title: product.name,
+      description: product.description?.trim() || product.price,
+      images: product.image ? [{ url: product.image }] : undefined,
+    },
+  };
+}
+
 export default async function ProductPage({
   params,
 }: {
@@ -25,6 +48,9 @@ export default async function ProductPage({
 
   const categoryLabel = product.category === "men" ? "Hombre" : "Mujer";
   const waUrl = productWhatsAppUrl(content.contact, product);
+  const description =
+    product.description?.trim() ||
+    "¿Te gusta esta pieza? Escríbenos por WhatsApp y te ayudamos con tallas, disponibilidad y envío.";
 
   return (
     <>
@@ -64,8 +90,7 @@ export default async function ProductPage({
               {product.price}
             </p>
             <p className="mt-6 max-w-md text-sm leading-relaxed text-muted-foreground md:text-base">
-              ¿Te gusta esta pieza? Escríbenos por WhatsApp y te ayudamos con
-              tallas, disponibilidad y envío. Sin carrito: atención directa.
+              {description}
             </p>
 
             <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
@@ -83,7 +108,11 @@ export default async function ProductPage({
           </div>
         </div>
       </main>
-      <Footer brand={content.brand} content={content.footer} contact={content.contact} />
+      <Footer
+        brand={content.brand}
+        content={content.footer}
+        contact={content.contact}
+      />
       <WhatsAppFloat contact={content.contact} />
     </>
   );

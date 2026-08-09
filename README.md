@@ -1,36 +1,41 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BHACKING
 
-## Getting Started
+Catálogo moda + consulta por WhatsApp. Admin en `/admin`. Contenido en Supabase.
 
-First, run the development server:
+## Desarrollo local
 
 ```bash
+cp .env.example .env.local
+# Completa variables (ver abajo)
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Variables de entorno
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Variable | Uso |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Anon/publishable key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Solo servidor (guardar + uploads) |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Login owner |
+| `AUTH_SECRET` | Firma JWT cookie admin |
+| `NEXT_PUBLIC_SITE_URL` | URL canónica (sitemap / OG), ej. `https://tu-dominio.vercel.app` |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Supabase
 
-## Learn More
+1. Proyecto nuevo → SQL Editor → ejecutar **`supabase/schema.sql`** (schema completo).
+2. Si el proyecto **ya existía** con versiones anteriores → ejecutar **`supabase/delivery-patch.sql`** (actualiza RPCs, contacto, descripción de producto). **No** uses `add-hero-desktop-image.sql` después de tener contacto.
+3. Crear buckets si el schema no los dejó listos (hero, categories, products, featured, popular, sections, media) — el schema los define.
 
-To learn more about Next.js, take a look at the following resources:
+## Deploy (Vercel)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. Importar repo en Vercel.
+2. Añadir todas las env vars de `.env.example` (+ `NEXT_PUBLIC_SITE_URL` = dominio de producción).
+3. Deploy. El sitio necesita **HTTPS** (Vercel lo da) para PWA e instalar en el móvil.
+4. Probar: login admin, guardar contacto WA, abrir un producto → WhatsApp.
+5. Más adelante: Vercel Analytics desde el dashboard del proyecto (opcional).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Flujo de negocio
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Sin carrito. El usuario ve el catálogo, abre el detalle y consulta por WhatsApp/Instagram.

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { CategoriesSection, CategoryItem } from "@/lib/content/types";
+import { shopHref } from "@/lib/content/hrefs";
 
 export function Categories({ content }: { content: CategoriesSection }) {
   const large = content.items.find((c) => c.large) ?? content.items[0];
@@ -21,7 +22,7 @@ export function Categories({ content }: { content: CategoriesSection }) {
             </p>
           </div>
           <Link
-            href="#shop"
+            href={shopHref()}
             className="text-sm font-medium tracking-wide underline-offset-4 transition-opacity hover:opacity-60 hover:underline"
           >
             {content.viewAllLabel}
@@ -50,7 +51,7 @@ function CategoryCard({
 }) {
   return (
     <Link
-      href="#shop"
+      href={shopHref()}
       className={`group relative block overflow-hidden rounded-md bg-soft ${
         tall ? "min-h-[550px] md:min-h-full md:h-full" : "min-h-[210px]"
       }`}

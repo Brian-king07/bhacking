@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth/session";
 import { createId, getContent, updateContent } from "@/lib/content/store";
-import { MIN_CATEGORIES, type SiteContent } from "@/lib/content/types";
+import {
+  MAX_CATEGORIES,
+  MIN_CATEGORIES,
+  type SiteContent,
+} from "@/lib/content/types";
 
 export type ActionResult = {
   ok: boolean;
@@ -51,8 +55,11 @@ export async function upsertCategory(
   return safeMutate((c) => {
     const items = [...c.categories.items];
     const idx = items.findIndex((i) => i.id === item.id);
-    if (idx >= 0) items[idx] = item;
-    else items.push(item);
+    // Solo editar existentes: el layout es fijo a 3 slots.
+    if (idx < 0) {
+      throw new Error("No se pueden crear categorías nuevas.");
+    }
+    items[idx] = item;
 
     if (item.large) {
       for (let i = 0; i < items.length; i++) {
@@ -67,52 +74,17 @@ export async function upsertCategory(
 }
 
 export async function addCategory(): Promise<ActionResult> {
-  return safeMutate((c) => {
-    const item = {
-      id: createId("cat"),
-      title: "Nueva categoría",
-      cta: "Comprar",
-      image:
-        "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80",
-      alt: "Nueva categoría",
-      large: false,
-    };
-    return {
-      ...c,
-      categories: { ...c.categories, items: [...c.categories.items, item] },
-    };
-  });
+  return {
+    ok: false,
+    error: `El layout usa exactamente ${MAX_CATEGORIES} categorías. Solo puedes editarlas.`,
+  };
 }
 
-export async function deleteCategory(id: string): Promise<ActionResult> {
-  try {
-    await requireSession();
-    const content = await getContent();
-    if (content.categories.items.length <= MIN_CATEGORIES) {
-      return {
-        ok: false,
-        error: `Debes mantener al menos ${MIN_CATEGORIES} categorías.`,
-      };
-    }
-    if (!content.categories.items.some((i) => i.id === id)) {
-      return { ok: false, error: "Categoría no encontrada." };
-    }
-
-    await updateContent((c) => {
-      let items = c.categories.items.filter((i) => i.id !== id);
-      if (!items.some((i) => i.large) && items[0]) {
-        items = [{ ...items[0], large: true }, ...items.slice(1)];
-      }
-      return { ...c, categories: { ...c.categories, items } };
-    });
-    revalidateSite();
-    return { ok: true };
-  } catch (e) {
-    return {
-      ok: false,
-      error: e instanceof Error ? e.message : "Error inesperado",
-    };
-  }
+export async function deleteCategory(_id: string): Promise<ActionResult> {
+  return {
+    ok: false,
+    error: `No se pueden eliminar categorías. Debes mantener las ${MIN_CATEGORIES} del layout.`,
+  };
 }
 
 export async function saveProductsSection(

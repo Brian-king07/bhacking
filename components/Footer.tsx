@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ContactSettings, FooterContent } from "@/lib/content/types";
+import { siteHref } from "@/lib/content/hrefs";
 import { buildInstagramUrl, generalWhatsAppUrl } from "@/lib/contact/whatsapp";
 
 export function Footer({
@@ -36,7 +37,7 @@ export function Footer({
               {column.links.map((link) => (
                 <li key={link.label}>
                   <Link
-                    href={link.href}
+                    href={siteHref(link.href)}
                     className="text-sm transition-opacity hover:opacity-60"
                   >
                     {link.label}
@@ -76,9 +77,6 @@ export function Footer({
               </a>
             ) : null}
           </div>
-          <p className="mt-8 text-sm text-muted-foreground">
-            {content.newsletterTitle}
-          </p>
         </div>
       </div>
 

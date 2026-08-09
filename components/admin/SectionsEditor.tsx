@@ -7,19 +7,24 @@ import { notifyError, notifySuccess } from "@/lib/admin/feedback";
 
 export function SectionsEditor({ initial }: { initial: SectionConfig[] }) {
   const [sections, setSections] = useState(
-    [...initial].sort((a, b) => a.order - b.order),
+    [...initial]
+      .filter((s) => s.type !== "popular")
+      .sort((a, b) => a.order - b.order),
   );
   const [pending, startTransition] = useTransition();
 
   function refreshOrder(next: SectionConfig[]) {
-    setSections([...next].sort((a, b) => a.order - b.order));
+    setSections(
+      [...next].filter((s) => s.type !== "popular").sort((a, b) => a.order - b.order),
+    );
   }
 
   return (
     <div className="space-y-4">
       <p className="text-sm text-neutral-500">
         Controla qué bloques aparecen en la página y en qué orden. Cada sección
-        se edita en su propia pantalla del admin.
+        se edita en su propia pantalla del admin. La sección Popular no se usa
+        en el sitio.
       </p>
 
       {sections.map((section, index) => (

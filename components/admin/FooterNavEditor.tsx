@@ -81,13 +81,13 @@ export function FooterNavEditor({
       <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6">
         <h2 className="font-display text-lg font-bold">Contacto (WhatsApp / Instagram)</h2>
         <p className="text-sm text-neutral-500">
-          Los productos abren un chat con mensaje precargado. Usa código de país
-          sin + (ej. 34600111222).
+          Los productos abren un chat con mensaje precargado.
         </p>
         <Field
           label="Número WhatsApp"
           value={contactData.whatsappNumber}
           onChange={(v) => updateContact("whatsappNumber", v)}
+          hint="Solo dígitos con código de país, sin + ni espacios (ej. 34624933471)"
         />
         <Field
           label="Instagram (sin @)"
@@ -159,29 +159,32 @@ export function FooterNavEditor({
       <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6">
         <h2 className="font-display text-lg font-bold">Footer</h2>
         <Field
-          label="Título newsletter"
-          value={data.newsletterTitle}
-          onChange={(v) => setData((d) => ({ ...d, newsletterTitle: v }))}
-        />
-        <Field
           label="Copyright"
           value={data.copyright}
           onChange={(v) => setData((d) => ({ ...d, copyright: v }))}
         />
         <Field
-          label="Título sitemap"
+          label="Título columna mapa"
           value={data.sitemapTitle}
           onChange={(v) => setData((d) => ({ ...d, sitemapTitle: v }))}
         />
+        <LinkList
+          title="Enlaces mapa del sitio"
+          links={data.sitemapLinks}
+          onChange={(sitemapLinks) => setData((d) => ({ ...d, sitemapLinks }))}
+        />
         <Field
-          label="Título disponible"
+          label="Título columna tienda"
           value={data.availableTitle}
           onChange={(v) => setData((d) => ({ ...d, availableTitle: v }))}
         />
-        <Field
-          label="Título términos"
-          value={data.termsTitle}
-          onChange={(v) => setData((d) => ({ ...d, termsTitle: v }))}
+        <LinkList
+          title="Enlaces tienda"
+          links={data.availableLinks}
+          onChange={(availableLinks) =>
+            setData((d) => ({ ...d, availableLinks }))
+          }
+          hint="Usa /?filter=men#shop o /?filter=women#shop para filtrar productos"
         />
         <SaveBar
           pending={footerPending}
@@ -189,6 +192,47 @@ export function FooterNavEditor({
           onSave={saveFooterOnly}
         />
       </div>
+    </div>
+  );
+}
+
+function LinkList({
+  title,
+  links,
+  onChange,
+  hint,
+}: {
+  title: string;
+  links: NavLink[];
+  onChange: (links: NavLink[]) => void;
+  hint?: string;
+}) {
+  return (
+    <div className="space-y-3 border-t border-neutral-100 pt-4">
+      <p className="text-sm font-medium">{title}</p>
+      {hint ? <p className="text-xs text-neutral-500">{hint}</p> : null}
+      {links.map((link, index) => (
+        <div key={index} className="grid gap-3 sm:grid-cols-2">
+          <Field
+            label={`Texto ${index + 1}`}
+            value={link.label}
+            onChange={(v) =>
+              onChange(
+                links.map((l, i) => (i === index ? { ...l, label: v } : l)),
+              )
+            }
+          />
+          <Field
+            label={`Href ${index + 1}`}
+            value={link.href}
+            onChange={(v) =>
+              onChange(
+                links.map((l, i) => (i === index ? { ...l, href: v } : l)),
+              )
+            }
+          />
+        </div>
+      ))}
     </div>
   );
 }

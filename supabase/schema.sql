@@ -11,7 +11,7 @@ create table if not exists public.site_settings (
   id int primary key default 1 check (id = 1),
   brand text not null default 'BHACKING',
   contact jsonb not null default '{
-    "whatsappNumber": "34600000000",
+    "whatsappNumber": "34624933471",
     "instagramHandle": "bhacking",
     "whatsappMessageTemplate": "Hola, me interesa *{name}* ({price}). ¿Me das más info?",
     "generalMessageTemplate": "Hola, quiero información sobre BHACKING.",
@@ -73,6 +73,7 @@ create table if not exists public.products (
   category text not null check (category in ('men', 'women')),
   image text not null,
   alt text not null,
+  description text not null default '',
   sort_order int not null default 0
 );
 
@@ -215,7 +216,8 @@ begin
             'price', price,
             'category', category,
             'image', image,
-            'alt', alt
+            'alt', alt,
+            'description', coalesce(description, '')
           )
           order by sort_order
         )
@@ -434,7 +436,7 @@ begin
   i := 0;
   for item in select * from jsonb_array_elements(coalesce(payload->'products'->'items', '[]'::jsonb))
   loop
-    insert into products (id, name, price, category, image, alt, sort_order)
+    insert into products (id, name, price, category, image, alt, description, sort_order)
     values (
       item->>'id',
       item->>'name',
@@ -442,6 +444,7 @@ begin
       item->>'category',
       item->>'image',
       item->>'alt',
+      coalesce(item->>'description', ''),
       i
     );
     i := i + 1;
@@ -674,7 +677,7 @@ using (bucket_id in ('hero','categories','products','featured','popular','sectio
 select public.replace_site_content('{
   "brand": "BHACKING",
   "contact": {
-    "whatsappNumber": "34600000000",
+    "whatsappNumber": "34624933471",
     "instagramHandle": "bhacking",
     "whatsappMessageTemplate": "Hola, me interesa *{name}* ({price}). ¿Me das más info?",
     "generalMessageTemplate": "Hola, quiero información sobre BHACKING.",
@@ -683,9 +686,9 @@ select public.replace_site_content('{
   },
   "navLinks": [
     {"href": "#home", "label": "Inicio"},
+    {"href": "#categories", "label": "Categorías"},
     {"href": "#shop", "label": "Tienda"},
-    {"href": "#history", "label": "Historia"},
-    {"href": "#news", "label": "Novedades"}
+    {"href": "#collection", "label": "Colección"}
   ],
   "hero": {
     "image": "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=2000&q=80",
@@ -839,35 +842,28 @@ select public.replace_site_content('{
     ]
   },
   "footer": {
-    "newsletterTitle": "Mantente inspirado y elegante",
-    "copyright": "© 2026 bhacking. Todos los derechos reservados",
+    "copyright": "© 2026 BHACKING. Todos los derechos reservados",
     "sitemapTitle": "Mapa del sitio",
-    "availableTitle": "Disponible",
-    "termsTitle": "Términos y privacidad",
+    "availableTitle": "Tienda",
     "sitemapLinks": [
       {"href": "#home", "label": "Inicio"},
-      {"href": "#shop", "label": "Tienda"},
-      {"href": "#history", "label": "Historia"},
-      {"href": "#news", "label": "Novedades"}
+      {"href": "#categories", "label": "Categorías"},
+      {"href": "#shop", "label": "Productos"},
+      {"href": "#collection", "label": "Colección"}
     ],
     "availableLinks": [
-      {"href": "#shop", "label": "Pantalones"},
-      {"href": "#shop", "label": "Chalecos"},
-      {"href": "#shop", "label": "Camisas"},
-      {"href": "#shop", "label": "Sneakers"}
+      {"href": "/?filter=men#shop", "label": "Hombre"},
+      {"href": "/?filter=women#shop", "label": "Mujer"},
+      {"href": "#shop", "label": "Ver todos"}
     ],
-    "termsLinks": [
-      {"href": "#", "label": "Términos y condiciones"},
-      {"href": "#", "label": "Política de privacidad"},
-      {"href": "#", "label": "Política de cookies"}
-    ]
+    "termsLinks": []
   },
   "sections": [
     {"id": "hero", "type": "hero", "label": "Hero", "visible": true, "order": 0},
     {"id": "categories", "type": "categories", "label": "Categorías para ti", "visible": true, "order": 1},
     {"id": "products", "type": "products", "label": "Productos nuevos", "visible": true, "order": 2},
     {"id": "featured", "type": "featured", "label": "Colección destacada", "visible": true, "order": 3},
-    {"id": "popular", "type": "popular", "label": "Popular este año", "visible": true, "order": 4}
+    {"id": "popular", "type": "popular", "label": "Popular este año", "visible": false, "order": 4}
   ]
 }'::jsonb);
 

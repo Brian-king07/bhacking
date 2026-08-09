@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { FeaturedSection } from "@/lib/content/types";
+import { shopHref } from "@/lib/content/hrefs";
+import { buildInstagramUrl } from "@/lib/contact/whatsapp";
 
 export function FeaturedCollection({ content }: { content: FeaturedSection }) {
   return (
@@ -16,7 +18,7 @@ export function FeaturedCollection({ content }: { content: FeaturedSection }) {
             </p>
           </div>
           <Link
-            href="#shop"
+            href={shopHref()}
             className="text-sm font-medium tracking-wide underline-offset-4 transition-opacity hover:opacity-60 hover:underline"
           >
             {content.viewAllLabel}
@@ -25,8 +27,14 @@ export function FeaturedCollection({ content }: { content: FeaturedSection }) {
 
         <div className="grid gap-5 sm:grid-cols-3">
           {content.items.map((item) => (
-            <Link key={item.id} href="#shop" className="group block">
-              <div className="relative lg:h-[85vh] h-[50vh] w-full overflow-hidden rounded-md bg-soft">
+            <a
+              key={item.id}
+              href={buildInstagramUrl(item.handle)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group block"
+            >
+              <div className="relative h-[50vh] w-full overflow-hidden rounded-md bg-soft lg:h-[85vh]">
                 <Image
                   src={item.image}
                   alt={item.alt}
@@ -36,9 +44,9 @@ export function FeaturedCollection({ content }: { content: FeaturedSection }) {
                 />
               </div>
               <p className="mt-4 text-sm tracking-wide text-muted-foreground transition-colors group-hover:text-foreground">
-                {item.handle}
+                {item.handle.startsWith("@") ? item.handle : `@${item.handle}`}
               </p>
-            </Link>
+            </a>
           ))}
         </div>
       </div>

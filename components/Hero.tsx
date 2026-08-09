@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { HeroContent } from "@/lib/content/types";
+import { shopHref } from "@/lib/content/hrefs";
 
 export function Hero({ content }: { content: HeroContent }) {
   const desktopImage = content.imageDesktop || content.image;
@@ -39,14 +40,14 @@ export function Hero({ content }: { content: HeroContent }) {
           </p>
           <div className="animate-fade-up delay-3 mt-8 flex flex-wrap items-center gap-4">
             <Link
-              href="#shop"
+              href={shopHref()}
               className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-semibold tracking-wide text-foreground transition-transform duration-300 hover:scale-[1.03]"
             >
               {content.primaryCta}
               <ArrowIcon />
             </Link>
             <Link
-              href="#categories"
+              href="/#categories"
               className="text-sm tracking-wide text-white/85 underline-offset-4 transition-colors hover:text-white hover:underline"
             >
               {content.secondaryCta}

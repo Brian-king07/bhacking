@@ -116,7 +116,7 @@ begin
   i := 0;
   for item in select * from jsonb_array_elements(coalesce(payload->'products'->'items', '[]'::jsonb))
   loop
-    insert into products (id, name, price, category, image, alt, sort_order)
+    insert into products (id, name, price, category, image, alt, description, sort_order)
     values (
       item->>'id',
       item->>'name',
@@ -124,6 +124,7 @@ begin
       item->>'category',
       item->>'image',
       item->>'alt',
+      coalesce(item->>'description', ''),
       i
     );
     i := i + 1;

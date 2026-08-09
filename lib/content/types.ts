@@ -16,6 +16,8 @@ export type ProductItem = {
   category: Exclude<ProductCategory, "all">;
   image: string;
   alt: string;
+  /** Opcional; se muestra en el detalle del producto */
+  description?: string;
 };
 
 export type FeaturedItem = {
@@ -75,14 +77,15 @@ export type PopularSection = {
 };
 
 export type FooterContent = {
-  newsletterTitle: string;
+  /** @deprecated Sin newsletter; se mantiene por compatibilidad con Supabase */
+  newsletterTitle?: string;
   copyright: string;
   sitemapTitle: string;
   availableTitle: string;
-  termsTitle: string;
+  termsTitle?: string;
   sitemapLinks: { href: string; label: string }[];
   availableLinks: { href: string; label: string }[];
-  termsLinks: { href: string; label: string }[];
+  termsLinks?: { href: string; label: string }[];
 };
 
 export type NavLink = {
@@ -140,4 +143,6 @@ export type SiteContent = {
   sections: SectionConfig[];
 };
 
+/** Layout fijo: exactamente 3 categorías (1 grande + 2). No se agregan ni borran. */
 export const MIN_CATEGORIES = 3;
+export const MAX_CATEGORIES = 3;

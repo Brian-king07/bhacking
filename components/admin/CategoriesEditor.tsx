@@ -2,13 +2,11 @@
 
 import { useRef, useState, useTransition } from "react";
 import {
-  addCategory,
-  deleteCategory,
   saveCategoriesSection,
   upsertCategory,
 } from "@/lib/content/actions";
 import type { CategoriesSection, CategoryItem } from "@/lib/content/types";
-import { MIN_CATEGORIES } from "@/lib/content/types";
+import { MAX_CATEGORIES } from "@/lib/content/types";
 import { ImageField, type ImageFieldHandle } from "@/components/admin/ImageField";
 import { SaveBar } from "@/components/admin/HeroEditor";
 import { isDirty } from "@/lib/admin/dirty";
@@ -52,30 +50,6 @@ export function CategoriesEditor({ initial }: { initial: CategoriesSection }) {
     });
   }
 
-  function onAdd() {
-    startTransition(async () => {
-      const result = await addCategory();
-      if (result.ok) {
-        notifySuccess("Categoría agregada");
-        window.location.reload();
-      } else notifyError(result.error || "Error");
-    });
-  }
-
-  function onDelete(id: string) {
-    if (!confirm("¿Eliminar esta categoría?")) return;
-    startTransition(async () => {
-      const result = await deleteCategory(id);
-      if (result.ok) {
-        setSection((s) => ({
-          ...s,
-          items: s.items.filter((i) => i.id !== id),
-        }));
-        notifySuccess("Categoría eliminada");
-      } else notifyError(result.error || "Error");
-    });
-  }
-
   return (
     <div className="space-y-6">
       <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6">
@@ -99,29 +73,18 @@ export function CategoriesEditor({ initial }: { initial: CategoriesSection }) {
         <SaveBar pending={pending} dirty={metaDirty} onSave={saveMeta} />
       </div>
 
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-neutral-500">
-          Mínimo {MIN_CATEGORIES} categorías · ahora {section.items.length}
-        </p>
-        <button
-          type="button"
-          onClick={onAdd}
-          disabled={pending}
-          className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white"
-        >
-          Agregar categoría
-        </button>
-      </div>
+      <p className="text-sm text-neutral-500">
+        Layout fijo: {MAX_CATEGORIES} categorías (1 grande + 2). Solo puedes
+        editar título, imagen y textos — no agregar ni eliminar.
+      </p>
 
       <div className="space-y-4">
-        {section.items.map((item) => (
+        {section.items.slice(0, MAX_CATEGORIES).map((item) => (
           <CategoryCard
             key={item.id}
             item={item}
-            canDelete={section.items.length > MIN_CATEGORIES}
             pending={pending}
             onSave={saveItem}
-            onDelete={onDelete}
           />
         ))}
       </div>
@@ -131,16 +94,12 @@ export function CategoriesEditor({ initial }: { initial: CategoriesSection }) {
 
 function CategoryCard({
   item,
-  canDelete,
   pending,
   onSave,
-  onDelete,
 }: {
   item: CategoryItem;
-  canDelete: boolean;
   pending: boolean;
   onSave: (item: CategoryItem) => void;
-  onDelete: (id: string) => void;
 }) {
   const [data, setData] = useState(item);
   const [imagePending, setImagePending] = useState(false);
@@ -162,17 +121,7 @@ function CategoryCard({
     <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-6">
       <div className="flex items-center justify-between gap-3">
         <h3 className="font-medium">{data.title || "Sin título"}</h3>
-        {canDelete ? (
-          <button
-            type="button"
-            onClick={() => onDelete(item.id)}
-            className="text-sm text-red-600 hover:underline"
-          >
-            Eliminar
-          </button>
-        ) : (
-          <span className="text-xs text-neutral-400">Mínimo alcanzado</span>
-        )}
+        <span className="text-xs text-neutral-400">Slot fijo</span>
       </div>
       <ImageField
         ref={imageRef}

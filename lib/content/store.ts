@@ -1,6 +1,10 @@
 import { defaultContent } from "@/lib/content/defaults";
 import { createId } from "@/lib/content/id";
-import type { SiteContent } from "@/lib/content/types";
+import {
+  MAX_CATEGORIES,
+  type CategoryItem,
+  type SiteContent,
+} from "@/lib/content/types";
 import { createAnonClient, createServiceClient } from "@/lib/supabase/client";
 
 export { createId };
@@ -12,57 +16,71 @@ function hasSupabaseEnv() {
   );
 }
 
+function pickItems<T>(
+  incoming: T[] | undefined,
+  fallback: T[],
+): T[] {
+  // Array vacío es válido (sección oculta). Solo usamos fallback si falta el campo.
+  return Array.isArray(incoming) ? incoming : fallback;
+}
+
+/** Layout fijo: siempre exactamente 3 categorías. */
+function pickCategories(incoming: CategoryItem[] | undefined): CategoryItem[] {
+  const fallback = defaultContent.categories.items;
+  const base = Array.isArray(incoming) && incoming.length > 0 ? incoming : fallback;
+  const items = base.slice(0, MAX_CATEGORIES);
+  while (items.length < MAX_CATEGORIES) {
+    items.push(structuredClone(fallback[items.length]!));
+  }
+  return items;
+}
+
 function mergeWithDefaults(parsed: Partial<SiteContent> | null): SiteContent {
   if (!parsed) return structuredClone(defaultContent);
   return {
     ...defaultContent,
     ...parsed,
     brand: parsed.brand || defaultContent.brand,
-    navLinks: parsed.navLinks?.length ? parsed.navLinks : defaultContent.navLinks,
+    navLinks: pickItems(parsed.navLinks, defaultContent.navLinks),
     contact: { ...defaultContent.contact, ...parsed.contact },
     hero: { ...defaultContent.hero, ...parsed.hero },
     categories: {
       ...defaultContent.categories,
       ...parsed.categories,
-      items: parsed.categories?.items?.length
-        ? parsed.categories.items
-        : defaultContent.categories.items,
+      items: pickCategories(parsed.categories?.items),
     },
     products: {
       ...defaultContent.products,
       ...parsed.products,
-      items: parsed.products?.items?.length
-        ? parsed.products.items
-        : defaultContent.products.items,
+      items: pickItems(parsed.products?.items, defaultContent.products.items),
     },
     featured: {
       ...defaultContent.featured,
       ...parsed.featured,
-      items: parsed.featured?.items?.length
-        ? parsed.featured.items
-        : defaultContent.featured.items,
+      items: pickItems(parsed.featured?.items, defaultContent.featured.items),
     },
     popular: {
       ...defaultContent.popular,
       ...parsed.popular,
-      items: parsed.popular?.items?.length
-        ? parsed.popular.items
-        : defaultContent.popular.items,
+      items: pickItems(parsed.popular?.items, defaultContent.popular.items),
     },
     footer: {
       ...defaultContent.footer,
       ...parsed.footer,
-      sitemapLinks: parsed.footer?.sitemapLinks?.length
-        ? parsed.footer.sitemapLinks
-        : defaultContent.footer.sitemapLinks,
-      availableLinks: parsed.footer?.availableLinks?.length
-        ? parsed.footer.availableLinks
-        : defaultContent.footer.availableLinks,
-      termsLinks: parsed.footer?.termsLinks?.length
-        ? parsed.footer.termsLinks
-        : defaultContent.footer.termsLinks,
+      sitemapLinks: pickItems(
+        parsed.footer?.sitemapLinks,
+        defaultContent.footer.sitemapLinks,
+      ),
+      availableLinks: pickItems(
+        parsed.footer?.availableLinks,
+        defaultContent.footer.availableLinks,
+      ),
+      termsLinks: pickItems(
+        parsed.footer?.termsLinks,
+        defaultContent.footer.termsLinks ?? [],
+      ),
     },
-    sections: parsed.sections?.length ? parsed.sections : defaultContent.sections,
+    sections: pickItems(parsed.sections, defaultContent.sections),
   };
 }
 

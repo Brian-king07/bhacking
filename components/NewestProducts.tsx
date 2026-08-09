@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ProductItem, ProductsSection } from "@/lib/content/types";
 
 const PAGE_SIZE = 6;
@@ -15,9 +16,24 @@ const filters = [
 
 type FilterId = (typeof filters)[number]["id"];
 
+function parseFilter(value: string | null): FilterId {
+  if (value === "men" || value === "women") return value;
+  return "all";
+}
+
 export function NewestProducts({ content }: { content: ProductsSection }) {
-  const [active, setActive] = useState<FilterId>("all");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const [active, setActive] = useState<FilterId>(() =>
+    parseFilter(searchParams.get("filter")),
+  );
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setActive(parseFilter(searchParams.get("filter")));
+    setPage(1);
+  }, [searchParams]);
 
   const filtered = useMemo(
     () =>
@@ -37,6 +53,13 @@ export function NewestProducts({ content }: { content: ProductsSection }) {
   function changeFilter(id: FilterId) {
     setActive(id);
     setPage(1);
+    const params = new URLSearchParams(searchParams.toString());
+    if (id === "all") params.delete("filter");
+    else params.set("filter", id);
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}#shop` : `${pathname}#shop`, {
+      scroll: false,
+    });
   }
 
   return (

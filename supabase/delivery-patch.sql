@@ -1,15 +1,66 @@
--- Añade imagen desktop al hero
--- OBSOLETO si ya tienes contacto/WhatsApp en schema: este archivo recrea
--- get_site_content SIN la clave `contact` y puede romper WA/IG.
--- Preferir: supabase/delivery-patch.sql (versión actualizada).
--- Pega en Supabase → SQL Editor → Run SOLO en DBs antiguas sin contact.
+-- BHACKING delivery patch (contacto + descripción producto + RPCs al día)
+-- Pega TODO este archivo en Supabase → SQL Editor → Run
+-- Seguro de re-ejecutar. Incluye contact + image_desktop + product.description.
 
 alter table public.hero
   add column if not exists image_desktop text not null default '';
 
+alter table public.site_settings
+  add column if not exists contact jsonb not null default '{}'::jsonb;
+
+alter table public.products
+  add column if not exists description text not null default '';
+
 update public.hero
 set image_desktop = image
 where coalesce(image_desktop, '') = '';
+
+update public.site_settings
+set contact = jsonb_set(
+  coalesce(nullif(contact, '{}'::jsonb), '{
+    "whatsappNumber": "34624933471",
+    "instagramHandle": "bhacking",
+    "whatsappMessageTemplate": "Hola, me interesa *{name}* ({price}). ¿Me das más info?",
+    "generalMessageTemplate": "Hola, quiero información sobre BHACKING.",
+    "whatsappCtaLabel": "Consultar por WhatsApp",
+    "instagramCtaLabel": "Escribir en Instagram"
+  }'::jsonb),
+  '{whatsappNumber}',
+  '"34624933471"'
+)
+where id = 1;
+
+-- Sustituye menú con anclas muertas (#history / #news)
+do $$
+begin
+  if exists (
+    select 1 from public.nav_links
+    where href in ('#history', '#news')
+  ) then
+    delete from public.nav_links;
+    insert into public.nav_links (id, href, label, sort_order) values
+      ('nav-home', '#home', 'Inicio', 0),
+      ('nav-categories', '#categories', 'Categorías', 1),
+      ('nav-shop', '#shop', 'Tienda', 2),
+      ('nav-collection', '#collection', 'Colección', 3);
+  end if;
+
+  if exists (
+    select 1 from public.footer_links
+    where href in ('#history', '#news')
+  ) then
+    delete from public.footer_links where link_group = 'sitemap';
+    insert into public.footer_links (id, link_group, href, label, sort_order) values
+      ('ft-sm-home', 'sitemap', '#home', 'Inicio', 0),
+      ('ft-sm-categories', 'sitemap', '#categories', 'Categorías', 1),
+      ('ft-sm-shop', 'sitemap', '#shop', 'Productos', 2),
+      ('ft-sm-collection', 'sitemap', '#collection', 'Colección', 3);
+  end if;
+end $$;
+
+update public.page_sections
+set visible = false
+where section_type = 'popular';
 
 create or replace function public.get_site_content()
 returns jsonb
@@ -23,6 +74,10 @@ declare
 begin
   select jsonb_build_object(
     'brand', coalesce((select brand from site_settings where id = 1), 'BHACKING'),
+    'contact', coalesce(
+      (select contact from site_settings where id = 1),
+      '{}'::jsonb
+    ),
     'navLinks', coalesce((
       select jsonb_agg(
         jsonb_build_object('href', href, 'label', label)
@@ -73,7 +128,8 @@ begin
             'price', price,
             'category', category,
             'image', image,
-            'alt', alt
+            'alt', alt,
+            'description', coalesce(description, '')
           )
           order by sort_order
         )
@@ -188,10 +244,17 @@ begin
     raise exception 'Debes mantener al menos 3 categorías';
   end if;
 
-  insert into site_settings (id, brand, updated_at)
-  values (1, coalesce(payload->>'brand', 'BHACKING'), now())
+  insert into site_settings (id, brand, contact, updated_at)
+  values (
+    1,
+    coalesce(payload->>'brand', 'BHACKING'),
+    coalesce(payload->'contact', '{}'::jsonb),
+    now()
+  )
   on conflict (id) do update
-    set brand = excluded.brand, updated_at = now();
+    set brand = excluded.brand,
+        contact = excluded.contact,
+        updated_at = now();
 
   delete from nav_links where true;
   i := 0;
@@ -281,7 +344,7 @@ begin
   i := 0;
   for item in select * from jsonb_array_elements(coalesce(payload->'products'->'items', '[]'::jsonb))
   loop
-    insert into products (id, name, price, category, image, alt, sort_order)
+    insert into products (id, name, price, category, image, alt, description, sort_order)
     values (
       item->>'id',
       item->>'name',
@@ -289,6 +352,7 @@ begin
       item->>'category',
       item->>'image',
       item->>'alt',
+      coalesce(item->>'description', ''),
       i
     );
     i := i + 1;
@@ -423,3 +487,8 @@ begin
   return public.get_site_content();
 end;
 $$;
+
+revoke all on function public.get_site_content() from public;
+revoke all on function public.replace_site_content(jsonb) from public;
+grant execute on function public.get_site_content() to anon, authenticated, service_role;
+grant execute on function public.replace_site_content(jsonb) to service_role;

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import type { ContactSettings, NavLink } from "@/lib/content/types";
+import { siteHref } from "@/lib/content/hrefs";
 import { generalWhatsAppUrl } from "@/lib/contact/whatsapp";
 
 export function Header({
@@ -53,7 +54,7 @@ export function Header({
             {navLinks.map((link) => (
               <Link
                 key={`${link.href}-${link.label}`}
-                href={link.href.startsWith("#") ? `/${link.href}` : link.href}
+                href={siteHref(link.href)}
                 className={`text-[13px] font-medium tracking-[0.14em] uppercase transition-opacity hover:opacity-70 ${
                   dark ? "text-foreground" : "text-white"
                 }`}
@@ -103,7 +104,7 @@ export function Header({
           {navLinks.map((link) => (
             <Link
               key={`m-${link.href}-${link.label}`}
-              href={link.href.startsWith("#") ? `/${link.href}` : link.href}
+              href={siteHref(link.href)}
               onClick={() => setOpen(false)}
               className={`text-sm tracking-[0.12em] uppercase ${
                 dark ? "text-foreground" : "text-white"
