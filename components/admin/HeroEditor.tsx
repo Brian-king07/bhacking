@@ -5,8 +5,10 @@ import type { HeroContent } from "@/lib/content/types";
 import { saveHero } from "@/lib/content/actions";
 import { ImageField, type ImageFieldHandle } from "@/components/admin/ImageField";
 import { isDirty } from "@/lib/admin/dirty";
+import { adminField, adminBtnPrimary } from "@/lib/admin/styles";
 import { notifyError, notifyResult } from "@/lib/admin/feedback";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export function HeroEditor({ initial }: { initial: HeroContent }) {
   const [data, setData] = useState(initial);
@@ -43,22 +45,24 @@ export function HeroEditor({ initial }: { initial: HeroContent }) {
 
   return (
     <div className="space-y-6 rounded-2xl border border-neutral-200 bg-white p-6">
-      <ImageField
-        ref={imageRef}
-        label="Imagen mobile (vertical)"
-        value={data.image}
-        onChange={(url) => update("image", url)}
-        onPendingChange={setMobilePending}
-        bucket="hero"
-      />
-      <ImageField
-        ref={imageDesktopRef}
-        label="Imagen desktop (horizontal)"
-        value={data.imageDesktop}
-        onChange={(url) => update("imageDesktop", url)}
-        onPendingChange={setDesktopPending}
-        bucket="hero"
-      />
+      <div className="flex lg:flex-row flex-col gap-5">
+        <ImageField
+          ref={imageRef}
+          label="Imagen mobile (vertical)"
+          value={data.image}
+          onChange={(url) => update("image", url)}
+          onPendingChange={setMobilePending}
+          bucket="hero"
+        />
+        <ImageField
+          ref={imageDesktopRef}
+          label="Imagen desktop (horizontal)"
+          value={data.imageDesktop}
+          onChange={(url) => update("imageDesktop", url)}
+          onPendingChange={setDesktopPending}
+          bucket="hero"
+        />
+      </div>
       {(
         [
           ["brand", "Marca en hero"],
@@ -94,7 +98,7 @@ function Field({
   multiline?: boolean;
 }) {
   const className =
-    "w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-900";
+    adminField;
   return (
     <div>
       <label className="mb-1.5 block text-sm font-medium">{label}</label>
@@ -134,7 +138,7 @@ export function SaveBar({
         onClick={onSave}
         disabled={pending || !dirty}
         size="lg"
-        className="rounded-xl px-5"
+        className={cn(adminBtnPrimary, "rounded-md px-5")}
       >
         {pending ? "Guardando…" : label}
       </Button>

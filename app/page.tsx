@@ -8,7 +8,8 @@ import { Hero } from "@/components/Hero";
 import { NewestProducts } from "@/components/NewestProducts";
 import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 import { getContent } from "@/lib/content/store";
-import { MIN_CATEGORIES } from "@/lib/content/types";
+import { COLUMNS_COUNT, MIN_CATEGORIES } from "@/lib/content/types";
+import Columns from "@/components/Columns";
 
 export const dynamic = "force-dynamic";
 
@@ -30,6 +31,11 @@ export default async function Home() {
           switch (section.type) {
             case "hero":
               return <Hero key={section.id} content={content.hero} />;
+            case "columns": {
+              const filled = content.columns.items.filter((i) => i.image).length;
+              if (filled < COLUMNS_COUNT) return null;
+              return <Columns key={section.id} content={content.columns} />;
+            }
             case "categories":
               // Layout fijo: siempre 3 slots (garantizado en mergeWithDefaults).
               if (content.categories.items.length < MIN_CATEGORIES) return null;

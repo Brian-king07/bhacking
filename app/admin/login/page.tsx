@@ -2,7 +2,10 @@ import { LoginForm } from "@/components/admin/LoginForm";
 
 export default function AdminLoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-100 px-5">
+    <div
+      data-admin
+      className="flex min-h-screen items-center justify-center bg-neutral-100 px-5"
+    >
       <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-sm">
         <p className="font-display text-xl font-bold tracking-[0.14em]">BHACKING</p>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight">Acceso owner</h1>

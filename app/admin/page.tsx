@@ -11,6 +11,11 @@ const cards = [
     desc: "Imagen principal, titular y CTAs",
   },
   {
+    href: "/admin/columns",
+    title: "Columns",
+    desc: "10 imágenes de la galería parallax",
+  },
+  {
     href: "/admin/categorias",
     title: "Categorías",
     desc: "Portadas, altas y bajas (mín. 3)",

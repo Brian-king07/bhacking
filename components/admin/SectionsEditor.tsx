@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { moveSection, toggleSectionVisible } from "@/lib/content/actions";
 import type { SectionConfig } from "@/lib/content/types";
 import { notifyError, notifySuccess } from "@/lib/admin/feedback";
+import { adminBtn } from "@/lib/admin/styles";
 
 export function SectionsEditor({ initial }: { initial: SectionConfig[] }) {
   const [sections, setSections] = useState(
@@ -61,7 +62,7 @@ export function SectionsEditor({ initial }: { initial: SectionConfig[] }) {
                     notifySuccess("Orden actualizado");
                   })
                 }
-                className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm disabled:opacity-40"
+                className={`${adminBtn} px-3 py-1.5`}
               >
                 Subir
               </button>
@@ -85,7 +86,7 @@ export function SectionsEditor({ initial }: { initial: SectionConfig[] }) {
                     notifySuccess("Orden actualizado");
                   })
                 }
-                className="rounded-lg border border-neutral-200 px-3 py-1.5 text-sm disabled:opacity-40"
+                className={`${adminBtn} px-3 py-1.5`}
               >
                 Bajar
               </button>

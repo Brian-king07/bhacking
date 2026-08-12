@@ -1,5 +1,6 @@
 export const MEDIA_BUCKETS = [
   "hero",
+  "columns",
   "categories",
   "products",
   "featured",

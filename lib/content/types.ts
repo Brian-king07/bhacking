@@ -76,6 +76,17 @@ export type PopularSection = {
   items: PopularItem[];
 };
 
+export type ColumnsItem = {
+  id: string;
+  image: string;
+  alt: string;
+};
+
+/** Galería parallax: exactamente 10 imágenes. */
+export type ColumnsSection = {
+  items: ColumnsItem[];
+};
+
 export type FooterContent = {
   /** @deprecated Sin newsletter; se mantiene por compatibilidad con Supabase */
   newsletterTitle?: string;
@@ -108,6 +119,7 @@ export type ContactSettings = {
 
 export type BuiltinSectionKey =
   | "hero"
+  | "columns"
   | "categories"
   | "products"
   | "featured"
@@ -135,6 +147,7 @@ export type SiteContent = {
   navLinks: NavLink[];
   contact: ContactSettings;
   hero: HeroContent;
+  columns: ColumnsSection;
   categories: CategoriesSection;
   products: ProductsSection;
   featured: FeaturedSection;
@@ -146,3 +159,6 @@ export type SiteContent = {
 /** Layout fijo: exactamente 3 categorías (1 grande + 2). No se agregan ni borran. */
 export const MIN_CATEGORIES = 3;
 export const MAX_CATEGORIES = 3;
+
+/** Layout fijo: exactamente 10 imágenes en la sección Columns. */
+export const COLUMNS_COUNT = 10;
