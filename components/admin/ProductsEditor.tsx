@@ -10,8 +10,10 @@ import type { ProductItem, ProductsSection } from "@/lib/content/types";
 import { ImageField, type ImageFieldHandle } from "@/components/admin/ImageField";
 import { SaveBar } from "@/components/admin/HeroEditor";
 import { isDirty } from "@/lib/admin/dirty";
+import { adminField, adminBtnPrimary } from "@/lib/admin/styles";
 import { notifyError, notifyResult, notifySuccess } from "@/lib/admin/feedback";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -144,7 +146,7 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
       </div>
 
       <div className="flex justify-end">
-        <Button className="rounded-xl" onClick={openCreateModal}>
+        <Button className={cn(adminBtnPrimary, "rounded-md")} onClick={openCreateModal}>
           Agregar producto
         </Button>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -206,7 +208,7 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
                 <textarea
                   id="new-product-description"
                   rows={3}
-                  className="w-full rounded-lg border border-input bg-transparent px-3 py-2 text-sm"
+                  className={adminField}
                   value={draft.description ?? ""}
                   onChange={(e) =>
                     setDraft((d) => ({ ...d, description: e.target.value }))
@@ -218,7 +220,7 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
                 <Label htmlFor="new-product-category">Categoría filtro</Label>
                 <select
                   id="new-product-category"
-                  className="h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm"
+                  className={`h-9 ${adminField}`}
                   value={draft.category}
                   onChange={(e) =>
                     setDraft((d) => ({
@@ -242,7 +244,12 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
               >
                 Cancelar
               </Button>
-              <Button type="button" onClick={onCreate} disabled={pending}>
+              <Button
+                type="button"
+                className={cn(adminBtnPrimary)}
+                onClick={onCreate}
+                disabled={pending}
+              >
                 {pending ? "Guardando…" : "Crear producto"}
               </Button>
             </DialogFooter>
@@ -339,7 +346,7 @@ function ProductCard({
       <div>
         <label className="mb-1.5 block text-sm font-medium">Categoría filtro</label>
         <select
-          className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm"
+          className={adminField}
           value={data.category}
           onChange={(e) =>
             setData((d) => ({
@@ -356,7 +363,7 @@ function ProductCard({
         type="button"
         disabled={!dirty || pending || saving}
         onClick={handleSave}
-        className="rounded-xl"
+        className={cn(adminBtnPrimary, "rounded-md")}
       >
         {saving ? "Guardando…" : "Guardar producto"}
       </Button>
@@ -376,7 +383,7 @@ function TextField({
   multiline?: boolean;
 }) {
   const className =
-    "w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-900";
+    adminField;
   return (
     <div>
       <label className="mb-1.5 block text-sm font-medium">{label}</label>

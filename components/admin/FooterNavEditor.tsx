@@ -13,6 +13,7 @@ import type {
 } from "@/lib/content/types";
 import { SaveBar } from "@/components/admin/HeroEditor";
 import { isDirty } from "@/lib/admin/dirty";
+import { adminField } from "@/lib/admin/styles";
 import { notifyResult } from "@/lib/admin/feedback";
 
 export function FooterNavEditor({
@@ -251,7 +252,7 @@ function Field({
   hint?: string;
 }) {
   const className =
-    "w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-900";
+    adminField;
   return (
     <div>
       <label className="mb-1.5 block text-sm font-medium">{label}</label>

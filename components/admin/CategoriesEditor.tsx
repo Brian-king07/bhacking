@@ -10,6 +10,7 @@ import { MAX_CATEGORIES } from "@/lib/content/types";
 import { ImageField, type ImageFieldHandle } from "@/components/admin/ImageField";
 import { SaveBar } from "@/components/admin/HeroEditor";
 import { isDirty } from "@/lib/admin/dirty";
+import { adminField } from "@/lib/admin/styles";
 import { notifyError, notifyResult, notifySuccess } from "@/lib/admin/feedback";
 
 function sectionMeta(section: CategoriesSection) {
@@ -78,7 +79,7 @@ export function CategoriesEditor({ initial }: { initial: CategoriesSection }) {
         editar título, imagen y textos — no agregar ni eliminar.
       </p>
 
-      <div className="space-y-4">
+      <div className="space-y-4 grid lg:grid-cols-2 gap-5">
         {section.items.slice(0, MAX_CATEGORIES).map((item) => (
           <CategoryCard
             key={item.id}
@@ -158,7 +159,7 @@ function CategoryCard({
         type="button"
         disabled={!dirty || pending}
         onClick={handleSave}
-        className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+        className="rounded-md bg-neutral-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
       >
         Guardar categoría
       </button>
@@ -178,7 +179,7 @@ function TextField({
   multiline?: boolean;
 }) {
   const className =
-    "w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-900";
+    adminField;
   return (
     <div>
       <label className="mb-1.5 block text-sm font-medium">{label}</label>

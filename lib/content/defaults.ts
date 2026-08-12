@@ -193,6 +193,13 @@ export const defaultContent: SiteContent = {
       },
     ],
   },
+  columns: {
+    items: Array.from({ length: 10 }, (_, i) => ({
+      id: `col-${i + 1}`,
+      image: "/1.jpg",
+      alt: `Columns ${i + 1}`,
+    })),
+  },
   footer: {
     copyright: "© 2026 BHACKING. Todos los derechos reservados",
     sitemapTitle: "Mapa del sitio",
@@ -213,32 +220,39 @@ export const defaultContent: SiteContent = {
   sections: [
     { id: "hero", type: "hero", label: "Hero", visible: true, order: 0 },
     {
+      id: "columns",
+      type: "columns",
+      label: "Columns (parallax)",
+      visible: true,
+      order: 1,
+    },
+    {
       id: "categories",
       type: "categories",
       label: "Categorías para ti",
       visible: true,
-      order: 1,
+      order: 2,
     },
     {
       id: "products",
       type: "products",
       label: "Productos nuevos",
       visible: true,
-      order: 2,
+      order: 3,
     },
     {
       id: "featured",
       type: "featured",
       label: "Colección destacada",
       visible: true,
-      order: 3,
+      order: 4,
     },
     {
       id: "popular",
       type: "popular",
       label: "Popular este año",
       visible: false,
-      order: 4,
+      order: 5,
     },
   ],
 };

@@ -8,10 +8,14 @@
 
 Eso crea:
 
-- Tablas con **todos los textos** (hero, categorías, productos, colecciones, popular, footer, nav, secciones)
+- Tablas con **todos los textos** (hero, columns, categorías, productos, colecciones, popular, footer, nav, secciones)
 - Funciones `get_site_content()` y `replace_site_content(payload)`
-- Buckets públicos: `hero`, `categories`, `products`, `featured`, `popular`, `sections`, `media`
+- Buckets públicos: `hero`, `columns`, `categories`, `products`, `featured`, `popular`, `sections`, `media`
 - Seed inicial en español
+
+### Proyecto ya existente
+
+Si el schema base ya está aplicado, ejecuta también [`add-columns-section.sql`](./add-columns-section.sql) para añadir la galería parallax (tabla + bucket + RPCs).
 
 ## 2. Variables de entorno
 

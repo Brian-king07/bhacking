@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth/session";
 import { createId, getContent, updateContent } from "@/lib/content/store";
 import {
+  COLUMNS_COUNT,
   MAX_CATEGORIES,
   MIN_CATEGORIES,
   type SiteContent,
@@ -18,6 +19,7 @@ function revalidateSite() {
   revalidatePath("/");
   revalidatePath("/admin");
   revalidatePath("/admin", "layout");
+  revalidatePath("/admin/columns");
 }
 
 async function safeMutate(
@@ -38,6 +40,33 @@ async function safeMutate(
 
 export async function saveHero(data: SiteContent["hero"]): Promise<ActionResult> {
   return safeMutate((c) => ({ ...c, hero: data }));
+}
+
+export async function saveColumns(
+  data: SiteContent["columns"],
+): Promise<ActionResult> {
+  if (!Array.isArray(data.items) || data.items.length !== COLUMNS_COUNT) {
+    return {
+      ok: false,
+      error: `Columns requiere exactamente ${COLUMNS_COUNT} imágenes.`,
+    };
+  }
+  if (data.items.some((item) => !item.image?.trim())) {
+    return {
+      ok: false,
+      error: `Sube las ${COLUMNS_COUNT} imágenes antes de guardar.`,
+    };
+  }
+  return safeMutate((c) => ({
+    ...c,
+    columns: {
+      items: data.items.map((item, i) => ({
+        id: item.id || `col-${i + 1}`,
+        image: item.image,
+        alt: item.alt || `Columns ${i + 1}`,
+      })),
+    },
+  }));
 }
 
 export async function saveCategoriesSection(

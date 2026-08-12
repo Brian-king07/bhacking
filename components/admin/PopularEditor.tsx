@@ -11,6 +11,7 @@ import type { PopularItem, PopularSection } from "@/lib/content/types";
 import { ImageField, type ImageFieldHandle } from "@/components/admin/ImageField";
 import { SaveBar } from "@/components/admin/HeroEditor";
 import { isDirty } from "@/lib/admin/dirty";
+import { adminField } from "@/lib/admin/styles";
 import { notifyError, notifyResult, notifySuccess } from "@/lib/admin/feedback";
 
 function sectionMeta(section: PopularSection) {
@@ -88,7 +89,7 @@ export function PopularEditor({ initial }: { initial: PopularSection }) {
               } else notifyError(result.error || "Error");
             })
           }
-          className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white"
+          className="rounded-md bg-neutral-950 px-4 py-2 text-sm font-semibold text-white"
         >
           Agregar producto popular
         </button>
@@ -203,7 +204,7 @@ function PopularCard({
         type="button"
         disabled={!dirty || pending}
         onClick={handleSave}
-        className="rounded-xl bg-neutral-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+        className="rounded-md bg-neutral-950 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
       >
         Guardar
       </button>
@@ -223,7 +224,7 @@ function Field({
   multiline?: boolean;
 }) {
   const className =
-    "w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm outline-none focus:border-neutral-900";
+    adminField;
   return (
     <div>
       <label className="mb-1.5 block text-sm font-medium">{label}</label>

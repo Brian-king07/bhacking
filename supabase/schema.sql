@@ -111,6 +111,12 @@ create table if not exists public.popular_items (
   sort_order int not null default 0
 );
 
+create table if not exists public.columns_section (
+  id int primary key default 1 check (id = 1),
+  items jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
 create table if not exists public.footer_settings (
   id int primary key default 1 check (id = 1),
   newsletter_title text not null,
@@ -132,7 +138,7 @@ create table if not exists public.footer_links (
 create table if not exists public.page_sections (
   id text primary key,
   section_type text not null check (
-    section_type in ('hero', 'categories', 'products', 'featured', 'popular', 'custom')
+    section_type in ('hero', 'columns', 'categories', 'products', 'featured', 'popular', 'custom')
   ),
   label text not null,
   visible boolean not null default true,
@@ -185,6 +191,12 @@ begin
         'sideNote', side_note
       )
       from hero where id = 1
+    ),
+    'columns', jsonb_build_object(
+      'items', coalesce(
+        (select items from columns_section where id = 1),
+        '[]'::jsonb
+      )
     ),
     'categories', jsonb_build_object(
       'title', (select title from categories_section where id = 1),
@@ -330,10 +342,16 @@ declare
   item jsonb;
   i int;
   cat_count int;
+  columns_count int;
 begin
   cat_count := jsonb_array_length(coalesce(payload->'categories'->'items', '[]'::jsonb));
   if cat_count < 3 then
     raise exception 'Debes mantener al menos 3 categorías';
+  end if;
+
+  columns_count := jsonb_array_length(coalesce(payload->'columns'->'items', '[]'::jsonb));
+  if columns_count <> 10 then
+    raise exception 'Columns requiere exactamente 10 imágenes';
   end if;
 
   insert into site_settings (id, brand, contact, updated_at)
@@ -386,6 +404,16 @@ begin
     primary_cta = excluded.primary_cta,
     secondary_cta = excluded.secondary_cta,
     side_note = excluded.side_note,
+    updated_at = now();
+
+  insert into columns_section (id, items, updated_at)
+  values (
+    1,
+    coalesce(payload->'columns'->'items', '[]'::jsonb),
+    now()
+  )
+  on conflict (id) do update set
+    items = excluded.items,
     updated_at = now();
 
   insert into categories_section (id, title, description, view_all_label, updated_at)
@@ -600,6 +628,7 @@ alter table public.featured_section enable row level security;
 alter table public.featured_items enable row level security;
 alter table public.popular_section enable row level security;
 alter table public.popular_items enable row level security;
+alter table public.columns_section enable row level security;
 alter table public.footer_settings enable row level security;
 alter table public.footer_links enable row level security;
 alter table public.page_sections enable row level security;
@@ -612,7 +641,7 @@ begin
   foreach t in array array[
     'site_settings','nav_links','hero','categories_section','categories',
     'products_section','products','featured_section','featured_items',
-    'popular_section','popular_items','footer_settings','footer_links','page_sections'
+    'popular_section','popular_items','columns_section','footer_settings','footer_links','page_sections'
   ]
   loop
     execute format('drop policy if exists "public read %s" on public.%I', t, t);
@@ -633,6 +662,7 @@ $$;
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values
   ('hero', 'hero', true, 5242880, array['image/jpeg','image/png','image/webp','image/gif']),
+  ('columns', 'columns', true, 5242880, array['image/jpeg','image/png','image/webp','image/gif']),
   ('categories', 'categories', true, 5242880, array['image/jpeg','image/png','image/webp','image/gif']),
   ('products', 'products', true, 5242880, array['image/jpeg','image/png','image/webp','image/gif']),
   ('featured', 'featured', true, 5242880, array['image/jpeg','image/png','image/webp','image/gif']),
@@ -649,26 +679,26 @@ drop policy if exists "Public read media" on storage.objects;
 create policy "Public read media"
 on storage.objects for select
 to anon, authenticated
-using (bucket_id in ('hero','categories','products','featured','popular','sections','media'));
+using (bucket_id in ('hero','columns','categories','products','featured','popular','sections','media'));
 
 -- Uploads desde el backend con service_role (bypass). Por si usas anon autenticado:
 drop policy if exists "Auth upload media" on storage.objects;
 create policy "Auth upload media"
 on storage.objects for insert
 to authenticated
-with check (bucket_id in ('hero','categories','products','featured','popular','sections','media'));
+with check (bucket_id in ('hero','columns','categories','products','featured','popular','sections','media'));
 
 drop policy if exists "Auth update media" on storage.objects;
 create policy "Auth update media"
 on storage.objects for update
 to authenticated
-using (bucket_id in ('hero','categories','products','featured','popular','sections','media'));
+using (bucket_id in ('hero','columns','categories','products','featured','popular','sections','media'));
 
 drop policy if exists "Auth delete media" on storage.objects;
 create policy "Auth delete media"
 on storage.objects for delete
 to authenticated
-using (bucket_id in ('hero','categories','products','featured','popular','sections','media'));
+using (bucket_id in ('hero','columns','categories','products','featured','popular','sections','media'));
 
 -- -----------------------------------------------------------------------------
 -- 6) Seed inicial (textos en español + imágenes Unsplash)
@@ -841,6 +871,20 @@ select public.replace_site_content('{
       }
     ]
   },
+  "columns": {
+    "items": [
+      {"id":"col-1","image":"/1.jpg","alt":"Columns 1"},
+      {"id":"col-2","image":"/1.jpg","alt":"Columns 2"},
+      {"id":"col-3","image":"/1.jpg","alt":"Columns 3"},
+      {"id":"col-4","image":"/1.jpg","alt":"Columns 4"},
+      {"id":"col-5","image":"/1.jpg","alt":"Columns 5"},
+      {"id":"col-6","image":"/1.jpg","alt":"Columns 6"},
+      {"id":"col-7","image":"/1.jpg","alt":"Columns 7"},
+      {"id":"col-8","image":"/1.jpg","alt":"Columns 8"},
+      {"id":"col-9","image":"/1.jpg","alt":"Columns 9"},
+      {"id":"col-10","image":"/1.jpg","alt":"Columns 10"}
+    ]
+  },
   "footer": {
     "copyright": "© 2026 BHACKING. Todos los derechos reservados",
     "sitemapTitle": "Mapa del sitio",
@@ -860,10 +904,11 @@ select public.replace_site_content('{
   },
   "sections": [
     {"id": "hero", "type": "hero", "label": "Hero", "visible": true, "order": 0},
-    {"id": "categories", "type": "categories", "label": "Categorías para ti", "visible": true, "order": 1},
-    {"id": "products", "type": "products", "label": "Productos nuevos", "visible": true, "order": 2},
-    {"id": "featured", "type": "featured", "label": "Colección destacada", "visible": true, "order": 3},
-    {"id": "popular", "type": "popular", "label": "Popular este año", "visible": false, "order": 4}
+    {"id": "columns", "type": "columns", "label": "Columns (parallax)", "visible": true, "order": 1},
+    {"id": "categories", "type": "categories", "label": "Categorías para ti", "visible": true, "order": 2},
+    {"id": "products", "type": "products", "label": "Productos nuevos", "visible": true, "order": 3},
+    {"id": "featured", "type": "featured", "label": "Colección destacada", "visible": true, "order": 4},
+    {"id": "popular", "type": "popular", "label": "Popular este año", "visible": false, "order": 5}
   ]
 }'::jsonb);
 
