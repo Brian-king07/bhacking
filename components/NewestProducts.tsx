@@ -2,9 +2,34 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import type { ProductItem, ProductsSection } from "@/lib/content/types";
+
+type PageItem = number | "ellipsis";
+
+/** Compact window: first 3 + last (or last 3 + first). Always a single row. */
+function getVisiblePages(current: number, total: number): PageItem[] {
+  const edge = 3;
+  if (total <= edge + 1) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  if (current <= edge) {
+    return [...Array.from({ length: edge }, (_, i) => i + 1), "ellipsis", total];
+  }
+
+  if (current > total - edge) {
+    return [
+      1,
+      "ellipsis",
+      ...Array.from({ length: edge }, (_, i) => total - edge + 1 + i),
+    ];
+  }
+
+  return [1, "ellipsis", current, "ellipsis", total];
+}
 
 const PAGE_SIZE = 6;
 
@@ -107,44 +132,62 @@ export function NewestProducts({ content }: { content: ProductsSection }) {
         ) : null}
 
         {totalPages > 1 ? (
-          <div className="mt-12 flex flex-wrap items-center justify-center gap-2">
+          <nav
+            aria-label="Paginación de productos"
+            className="mt-12 flex flex-nowrap items-center justify-center gap-0.5 overflow-x-auto whitespace-nowrap [-ms-overflow-style:none] [scrollbar-width:none] sm:gap-1 [&::-webkit-scrollbar]:hidden"
+          >
             <button
               type="button"
+              aria-label="Página anterior"
               disabled={currentPage <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
-              className="rounded-full px-4 py-2 text-sm font-medium tracking-wide text-foreground transition-opacity hover:opacity-70 disabled:pointer-events-none disabled:opacity-30"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-foreground transition-opacity hover:bg-soft disabled:pointer-events-none disabled:opacity-30 sm:h-10 sm:w-10"
             >
-              Anterior
+              <ChevronLeft className="h-4 w-4" />
             </button>
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => {
-              const isCurrent = n === currentPage;
+            {getVisiblePages(currentPage, totalPages).map((item, index) => {
+              if (item === "ellipsis") {
+                return (
+                  <span
+                    key={`ellipsis-${index}`}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center text-sm text-muted-foreground sm:h-10 sm:w-10"
+                    aria-hidden
+                  >
+                    …
+                  </span>
+                );
+              }
+
+              const isCurrent = item === currentPage;
               return (
                 <button
-                  key={n}
+                  key={item}
                   type="button"
+                  aria-label={`Página ${item}`}
                   aria-current={isCurrent ? "page" : undefined}
-                  onClick={() => setPage(n)}
-                  className={`min-w-10 rounded-full px-3 py-2 text-sm font-medium tracking-wide transition-all duration-300 ${
+                  onClick={() => setPage(item)}
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-medium tracking-wide transition-all duration-300 sm:h-10 sm:w-10 ${
                     isCurrent
                       ? "bg-foreground text-white"
                       : "text-foreground hover:bg-soft"
                   }`}
                 >
-                  {n}
+                  {item}
                 </button>
               );
             })}
 
             <button
               type="button"
+              aria-label="Página siguiente"
               disabled={currentPage >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              className="rounded-full px-4 py-2 text-sm font-medium tracking-wide text-foreground transition-opacity hover:opacity-70 disabled:pointer-events-none disabled:opacity-30"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-foreground transition-opacity hover:bg-soft disabled:pointer-events-none disabled:opacity-30 sm:h-10 sm:w-10"
             >
-              Siguiente
+              <ChevronRight className="h-4 w-4" />
             </button>
-          </div>
+          </nav>
         ) : null}
       </div>
     </section>

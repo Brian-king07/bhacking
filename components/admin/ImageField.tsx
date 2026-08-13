@@ -47,6 +47,7 @@ export const ImageField = forwardRef<ImageFieldHandle, Props>(function ImageFiel
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
   const previewRef = useRef<string | null>(null);
   const onPendingChangeRef = useRef(onPendingChange);
   onPendingChangeRef.current = onPendingChange;
@@ -116,6 +117,10 @@ export const ImageField = forwardRef<ImageFieldHandle, Props>(function ImageFiel
   }
 
   const displaySrc = previewUrl || value;
+  useEffect(() => {
+    setLoadFailed(false);
+  }, [displaySrc]);
+
   const previewClass = tall
     ? "h-52 w-36 rounded-lg bg-neutral-100 object-cover"
     : "h-28 w-40 rounded-lg bg-neutral-100 object-cover md:h-48 md:w-44";
@@ -127,12 +132,13 @@ export const ImageField = forwardRef<ImageFieldHandle, Props>(function ImageFiel
     <div className="space-y-2 w-full">
       <label className="block text-sm font-medium text-neutral-700">{label}</label>
       <div className="flex flex-col gap-3 sm:flex-row">
-        {displaySrc ? (
+        {displaySrc && !loadFailed ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={displaySrc}
             alt=""
             className={previewClass}
+            onError={() => setLoadFailed(true)}
           />
         ) : (
           <div className={emptyClass}>
