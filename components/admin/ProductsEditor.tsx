@@ -31,8 +31,7 @@ const emptyProduct = (): ProductItem => ({
   name: "",
   price: "€0.00",
   category: "men",
-  image:
-    "https://images.unsplash.com/photo-1523381216714-17e7e681f91e?auto=format&fit=crop&w=800&q=80",
+  image: "",
   alt: "",
   description: "",
 });
