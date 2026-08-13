@@ -29,86 +29,106 @@ export function Header({
     return () => window.removeEventListener("scroll", onScroll);
   }, [solid]);
 
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
   const waHref = contact ? generalWhatsAppUrl(contact) : null;
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ${
-        dark
-          ? "bg-white/90 py-4 shadow-[0_1px_0_rgba(0,0,0,0.06)] backdrop-blur-md"
-          : "bg-transparent py-6"
+        dark || open
+          ? "bg-white/95 py-4 shadow-[0_1px_0_rgba(0,0,0,0.06)] backdrop-blur-md"
+          : "bg-transparent py-5 md:py-6"
       }`}
     >
       <div className="px-5 md:px-8">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
+        {/* Mobile: brand left, menu right */}
+        <div className="mx-auto flex max-w-7xl items-center justify-between md:hidden">
           <Link
             href="/#home"
-            className={`font-display text-2xl font-bold tracking-[0.08em] transition-colors duration-300 ${
-              dark ? "text-foreground" : "text-white"
-            }`}
+            className="font-display text-[1.35rem] font-bold tracking-[0.06em] text-foreground"
+            onClick={() => setOpen(false)}
           >
             {brand}
           </Link>
+          <button
+            type="button"
+            aria-label={open ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+            className="flex h-10 w-10 items-center justify-end text-foreground"
+          >
+            <MenuIcon open={open} />
+          </button>
+        </div>
 
-          <nav className="hidden items-center gap-10 md:flex">
-            {navLinks.map((link) => (
+        {/* Desktop: three-column layout */}
+        <div className="mx-auto hidden max-w-7xl grid-cols-3 items-start md:grid">
+          <nav className="flex items-start gap-8">
+            <p className="w-[36%] text-[13px] font-bold tracking-wide uppercase text-foreground">
+              Creado con pasion y cuidado
+            </p>
+            {navLinks.slice(0, 2).map((link) => (
               <Link
-                key={`${link.href}-${link.label}`}
+                key={`d-l-${link.href}-${link.label}`}
                 href={siteHref(link.href)}
-                className={`text-[13px] font-medium tracking-[0.14em] uppercase transition-opacity hover:opacity-70 ${
-                  dark ? "text-foreground" : "text-white"
-                }`}
+                className="text-[13px] font-bold tracking-wide uppercase text-foreground transition-opacity hover:opacity-70"
               >
                 {link.label}
               </Link>
             ))}
           </nav>
 
-          <div className="flex items-center gap-4">
-            {waHref ? (
-              <a
-                href={waHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={contact?.whatsappCtaLabel || "WhatsApp"}
-                className={`transition-opacity hover:opacity-70 ${
-                  dark ? "text-foreground" : "text-white"
-                }`}
-              >
-                <WhatsAppIcon />
-              </a>
-            ) : null}
-            <button
-              type="button"
-              aria-label="Menú"
-              aria-expanded={open}
-              onClick={() => setOpen((v) => !v)}
-              className={`md:hidden ${dark ? "text-foreground" : "text-white"}`}
+          <div className="text-center">
+            <Link
+              href="/#home"
+              className="font-display text-2xl font-bold tracking-[0.08em] text-foreground"
             >
-              <MenuIcon open={open} />
-            </button>
+              {brand}
+            </Link>
           </div>
+
+          <nav className="flex items-start justify-end gap-8">
+            {navLinks.slice(2).map((link) => (
+              <Link
+                key={`d-r-${link.href}-${link.label}`}
+                href={siteHref(link.href)}
+                className="text-[13px] font-bold tracking-wide uppercase text-foreground transition-opacity hover:opacity-70"
+              >
+                {link.label}
+              </Link>
+            ))}
+            <p className="w-[27%] text-right text-[13px] font-bold tracking-wide uppercase text-foreground">
+              tu ropa única y personal
+            </p>
+          </nav>
         </div>
       </div>
 
+      {/* Mobile menu panel */}
       <div
-        className={`md:hidden overflow-hidden px-5 transition-all duration-300 md:px-8 ${
-          open ? "max-h-72 opacity-100" : "max-h-0 opacity-0"
+        className={`md:hidden overflow-hidden transition-all duration-300 ${
+          open ? "max-h-[70vh] opacity-100" : "max-h-0 opacity-0"
         }`}
       >
-        <nav
-          className={`mx-auto mt-3 flex max-w-7xl flex-col gap-4 rounded-xl px-5 py-5 ${
-            dark ? "bg-white" : "bg-black/50 backdrop-blur-md"
-          }`}
-        >
+        <nav className="mx-auto flex max-w-7xl flex-col gap-1 border-t border-black/5 px-5 py-4">
           {navLinks.map((link) => (
             <Link
               key={`m-${link.href}-${link.label}`}
               href={siteHref(link.href)}
               onClick={() => setOpen(false)}
-              className={`text-sm tracking-[0.12em] uppercase ${
-                dark ? "text-foreground" : "text-white"
-              }`}
+              className="py-3 text-sm font-medium tracking-[0.14em] uppercase text-foreground transition-opacity hover:opacity-60"
             >
               {link.label}
             </Link>
@@ -119,9 +139,7 @@ export function Header({
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setOpen(false)}
-              className={`text-sm tracking-[0.12em] uppercase ${
-                dark ? "text-foreground" : "text-white"
-              }`}
+              className="py-3 text-sm font-medium tracking-[0.14em] uppercase text-foreground transition-opacity hover:opacity-60"
             >
               WhatsApp
             </a>
@@ -132,32 +150,39 @@ export function Header({
   );
 }
 
-function WhatsAppIcon() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-      <path d="M17.47 14.38c-.3-.15-1.77-.87-2.04-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.95 1.17-.17.2-.35.22-.65.07-.3-.15-1.26-.46-2.4-1.48-.89-.79-1.49-1.77-1.66-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.07-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.5h-.57c-.2 0-.52.07-.8.37-.27.3-1.05 1.02-1.05 2.5s1.08 2.9 1.23 3.1c.15.2 2.12 3.24 5.14 4.54.72.31 1.28.5 1.72.64.72.23 1.38.2 1.9.12.58-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35z" />
-      <path d="M12.04 2C6.58 2 2.15 6.42 2.15 11.88c0 1.75.46 3.45 1.34 4.95L2 22l5.3-1.39c1.44.79 3.06 1.2 4.74 1.2h.01c5.46 0 9.89-4.42 9.89-9.88C21.94 6.42 17.5 2 12.04 2zm0 18.06h-.01c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.15.82.84-3.07-.2-.31a8.2 8.2 0 01-1.26-4.39c0-4.54 3.7-8.23 8.25-8.23 4.54 0 8.24 3.69 8.24 8.23 0 4.55-3.7 8.28-8.21 8.28z" />
-    </svg>
-  );
-}
-
 function MenuIcon({ open }: { open: boolean }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+    <svg width="24" height="16" viewBox="0 0 24 16" fill="none" aria-hidden>
       {open ? (
-        <path
-          d="M6 6l12 12M18 6L6 18"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
+        <>
+          <path
+            d="M2 2l20 12"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M22 2L2 14"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        </>
       ) : (
-        <path
-          d="M4 7h16M4 12h16M4 17h16"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-        />
+        <>
+          <path
+            d="M0 1.5h24"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="square"
+          />
+          <path
+            d="M0 14.5h24"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="square"
+          />
+        </>
       )}
     </svg>
   );
