@@ -52,7 +52,7 @@ export default function RootLayout({
       lang="es"
       className={cn(manrope.variable, syne.variable, "h-full antialiased")}
     >
-      <body className="flex min-h-full flex-col font-sans">
+      <body className="flex min-h-full flex-col font-sans overflow-x-hidden">
         {children}
         <PwaRegister />
         <Toaster />
