@@ -12,7 +12,7 @@ export default async function AdminProductsPage() {
   return (
     <AdminShell
       email={session.email}
-      title="Productos nuevos"
+      title="Productos"
       description="Actualiza fotos, precios, nombres y filtros de los productos."
     >
       <ProductsEditor initial={content.products} />

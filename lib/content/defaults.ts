@@ -4,9 +4,9 @@ export const defaultContent: SiteContent = {
   brand: "BHACKING",
   navLinks: [
     { href: "#home", label: "Inicio" },
-    { href: "#categories", label: "Categorías" },
     { href: "#shop", label: "Tienda" },
-    { href: "#collection", label: "Colección" },
+    { href: "/?filter=men#shop", label: "Hombre" },
+    { href: "/?filter=women#shop", label: "Mujer" },
   ],
   contact: {
     whatsappNumber: "34624933471",
@@ -206,9 +206,9 @@ export const defaultContent: SiteContent = {
     availableTitle: "Tienda",
     sitemapLinks: [
       { href: "#home", label: "Inicio" },
-      { href: "#categories", label: "Categorías" },
       { href: "#shop", label: "Productos" },
-      { href: "#collection", label: "Colección" },
+      { href: "/?filter=men#shop", label: "Hombre" },
+      { href: "/?filter=women#shop", label: "Mujer" },
     ],
     availableLinks: [
       { href: "/?filter=men#shop", label: "Hombre" },

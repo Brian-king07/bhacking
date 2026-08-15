@@ -9,9 +9,6 @@ export const dynamic = "force-dynamic";
 
 export default async function Home() {
   const content = await getContent();
-  const sections = [...content.sections]
-    .filter((s) => s.visible && s.type !== "popular")
-    .sort((a, b) => a.order - b.order);
 
   return (
     <>
@@ -20,20 +17,12 @@ export default async function Home() {
         navLinks={content.navLinks}
         contact={content.contact}
       />
-      <main className="flex-1 pt-20 md:pt-52">
-        {sections.map((section) => {
-          switch (section.type) {
-            case "products":
-              if (content.products.items.length === 0) return null;
-              return (
-                <Suspense key={section.id} fallback={null}>
-                  <NewestProducts content={content.products} />
-                </Suspense>
-              );
-            default:
-              return null;
-          }
-        })}
+      <main id="home" className="flex-1 scroll-mt-24 pt-20 md:pt-52">
+        {content.products.items.length > 0 ? (
+          <Suspense fallback={null}>
+            <NewestProducts content={content.products} />
+          </Suspense>
+        ) : null}
       </main>
       <Footer
         brand={content.brand}

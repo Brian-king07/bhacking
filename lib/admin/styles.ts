@@ -19,3 +19,13 @@ export const adminBtnPrimary =
 
 /** Alias: en admin los botones de acción son negros. */
 export const adminBtn = adminBtnPrimary;
+
+/**
+ * Cards del admin: mismo lenguaje elevated que botones/inputs
+ * (highlight blanco arriba + borde sutil, sin border-neutral plano).
+ */
+export const adminCard =
+  "rounded-2xl border-0 bg-white shadow-[inset_0_1px_0_0_#fff,0_0_0_1px_rgba(0,0,0,0.04),0_1px_2px_rgba(0,0,0,0.06)]";
+
+export const adminCardInteractive = `${adminCard} transition-[box-shadow] hover:shadow-[inset_0_1px_0_0_#fff,0_0_0_1px_rgba(0,0,0,0.06),0_4px_14px_rgba(0,0,0,0.08)]`;
+

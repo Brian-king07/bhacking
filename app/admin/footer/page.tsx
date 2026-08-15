@@ -12,8 +12,8 @@ export default async function AdminFooterPage() {
   return (
     <AdminShell
       email={session.email}
-      title="Footer, nav y contacto"
-      description="WhatsApp, Instagram, marca, menú y textos del pie."
+      title="Header / Footer"
+      description="Marca, menú, WhatsApp, Instagram y textos del pie."
     >
       <FooterNavEditor
         brand={content.brand}

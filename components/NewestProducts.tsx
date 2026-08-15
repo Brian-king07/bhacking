@@ -167,7 +167,7 @@ export function NewestProducts({ content }: { content: ProductsSection }) {
   return (
     <section
       id="shop"
-      className="overflow-x-clip bg-surface px-5 pb-16 pt-6 md:px-8 md:pb-28 md:pt-10"
+      className="scroll-mt-24 overflow-x-clip bg-surface px-5 pb-16 pt-6 md:scroll-mt-52 md:px-8 md:pb-28 md:pt-10"
     >
       <div className="mx-auto w-full min-w-0 max-w-full lg:max-w-7xl">
         <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-end lg:justify-between lg:gap-8">

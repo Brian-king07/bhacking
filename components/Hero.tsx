@@ -47,7 +47,7 @@ export function Hero({ content }: { content: HeroContent }) {
               <ArrowIcon />
             </Link>
             <Link
-              href="/#categories"
+              href={shopHref()}
               className="text-sm tracking-wide text-white/85 underline-offset-4 transition-colors hover:text-white hover:underline"
             >
               {content.secondaryCta}

@@ -1,6 +1,12 @@
 import { defaultContent } from "@/lib/content/defaults";
 import { createId } from "@/lib/content/id";
 import {
+  sanitizeAvailableLinks,
+  sanitizeNavLinks,
+  sanitizeSitemapLinks,
+  sanitizeTermsLinks,
+} from "@/lib/content/publicLinks";
+import {
   COLUMNS_COUNT,
   MAX_CATEGORIES,
   type CategoryItem,
@@ -90,7 +96,7 @@ function mergeWithDefaults(parsed: Partial<SiteContent> | null): SiteContent {
     ...defaultContent,
     ...parsed,
     brand: parsed.brand || defaultContent.brand,
-    navLinks: pickItems(parsed.navLinks, defaultContent.navLinks),
+    navLinks: sanitizeNavLinks(parsed.navLinks),
     contact: { ...defaultContent.contact, ...parsed.contact },
     hero: { ...defaultContent.hero, ...parsed.hero },
     columns: {
@@ -119,18 +125,18 @@ function mergeWithDefaults(parsed: Partial<SiteContent> | null): SiteContent {
     footer: {
       ...defaultContent.footer,
       ...parsed.footer,
-      sitemapLinks: pickItems(
-        parsed.footer?.sitemapLinks,
-        defaultContent.footer.sitemapLinks,
-      ),
-      availableLinks: pickItems(
-        parsed.footer?.availableLinks,
-        defaultContent.footer.availableLinks,
-      ),
-      termsLinks: pickItems(
-        parsed.footer?.termsLinks,
-        defaultContent.footer.termsLinks ?? [],
-      ),
+      availableTitle: (() => {
+        const available = sanitizeAvailableLinks(parsed.footer?.availableLinks);
+        const hasFilters = available.some((l) =>
+          /[?&]filter=(men|women)\b/i.test(l.href),
+        );
+        return hasFilters
+          ? parsed.footer?.availableTitle || defaultContent.footer.availableTitle
+          : "Tienda";
+      })(),
+      sitemapLinks: sanitizeSitemapLinks(parsed.footer?.sitemapLinks),
+      availableLinks: sanitizeAvailableLinks(parsed.footer?.availableLinks),
+      termsLinks: sanitizeTermsLinks(parsed.footer?.termsLinks),
     },
     sections: mergeSections(parsed.sections),
   };

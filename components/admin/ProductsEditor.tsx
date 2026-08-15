@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import {
   deleteProduct,
   saveProductsSection,
@@ -8,7 +8,7 @@ import {
 } from "@/lib/content/actions";
 import type { ProductItem, ProductsSection } from "@/lib/content/types";
 import { ImageField, type ImageFieldHandle } from "@/components/admin/ImageField";
-import { SaveBar } from "@/components/admin/HeroEditor";
+import { SaveBar } from "@/components/admin/SaveBar";
 import { isDirty } from "@/lib/admin/dirty";
 import { adminField, adminBtnPrimary } from "@/lib/admin/styles";
 import { notifyError, notifyResult, notifySuccess } from "@/lib/admin/feedback";
@@ -49,8 +49,20 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
   const [pending, startTransition] = useTransition();
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState<ProductItem>(emptyProduct);
+  const [query, setQuery] = useState("");
   const draftImageRef = useRef<ImageFieldHandle>(null);
   const metaDirty = isDirty(productsMeta(section), savedMeta);
+
+  const filteredItems = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return section.items;
+    return section.items.filter((item) => {
+      const haystack = [item.name, item.alt, item.description ?? "", item.price]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [query, section.items]);
 
   function saveMeta() {
     startTransition(async () => {
@@ -144,8 +156,27 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
         <SaveBar pending={pending} dirty={metaDirty} onSave={saveMeta} />
       </div>
 
-      <div className="flex justify-end">
-        <Button className={cn(adminBtnPrimary, "rounded-md")} onClick={openCreateModal}>
+      <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="w-full sm:max-w-sm">
+          <label
+            htmlFor="product-search"
+            className="mb-1.5 block text-sm font-medium"
+          >
+            Buscar
+          </label>
+          <input
+            id="product-search"
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Nombre, precio…"
+            className={adminField}
+          />
+        </div>
+        <Button
+          className={cn(adminBtnPrimary, "shrink-0 self-stretch rounded-md sm:self-end")}
+          onClick={openCreateModal}
+        >
           Agregar producto
         </Button>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -257,7 +288,7 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        {section.items.map((item) => (
+        {filteredItems.map((item) => (
           <ProductCard
             key={item.id}
             item={item}
@@ -267,6 +298,11 @@ export function ProductsEditor({ initial }: { initial: ProductsSection }) {
           />
         ))}
       </div>
+      {query.trim() && filteredItems.length === 0 ? (
+        <p className="text-sm text-neutral-500">
+          No hay productos que coincidan con “{query.trim()}”.
+        </p>
+      ) : null}
     </div>
   );
 }

@@ -11,7 +11,7 @@ import type {
   FooterContent,
   NavLink,
 } from "@/lib/content/types";
-import { SaveBar } from "@/components/admin/HeroEditor";
+import { SaveBar } from "@/components/admin/SaveBar";
 import { isDirty } from "@/lib/admin/dirty";
 import { adminField } from "@/lib/admin/styles";
 import { notifyResult } from "@/lib/admin/feedback";
@@ -185,7 +185,7 @@ export function FooterNavEditor({
           onChange={(availableLinks) =>
             setData((d) => ({ ...d, availableLinks }))
           }
-          hint="Usa /?filter=men#shop o /?filter=women#shop para filtrar productos"
+          hint="Anclas válidas: #home, #shop, /?filter=men#shop, /?filter=women#shop"
         />
         <SaveBar
           pending={footerPending}
