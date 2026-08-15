@@ -2,13 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { requireSession } from "@/lib/auth/session";
-import { createId, getContent, updateContent } from "@/lib/content/store";
-import {
-  COLUMNS_COUNT,
-  MAX_CATEGORIES,
-  MIN_CATEGORIES,
-  type SiteContent,
-} from "@/lib/content/types";
+import { createId, updateContent } from "@/lib/content/store";
+import type { SiteContent } from "@/lib/content/types";
 
 export type ActionResult = {
   ok: boolean;
@@ -19,7 +14,6 @@ function revalidateSite() {
   revalidatePath("/");
   revalidatePath("/admin");
   revalidatePath("/admin", "layout");
-  revalidatePath("/admin/columns");
 }
 
 async function safeMutate(
@@ -36,84 +30,6 @@ async function safeMutate(
       error: e instanceof Error ? e.message : "Error inesperado",
     };
   }
-}
-
-export async function saveHero(data: SiteContent["hero"]): Promise<ActionResult> {
-  return safeMutate((c) => ({ ...c, hero: data }));
-}
-
-export async function saveColumns(
-  data: SiteContent["columns"],
-): Promise<ActionResult> {
-  if (!Array.isArray(data.items) || data.items.length !== COLUMNS_COUNT) {
-    return {
-      ok: false,
-      error: `Columns requiere exactamente ${COLUMNS_COUNT} imágenes.`,
-    };
-  }
-  if (data.items.some((item) => !item.image?.trim())) {
-    return {
-      ok: false,
-      error: `Sube las ${COLUMNS_COUNT} imágenes antes de guardar.`,
-    };
-  }
-  return safeMutate((c) => ({
-    ...c,
-    columns: {
-      items: data.items.map((item, i) => ({
-        id: item.id || `col-${i + 1}`,
-        image: item.image,
-        alt: item.alt || `Columns ${i + 1}`,
-      })),
-    },
-  }));
-}
-
-export async function saveCategoriesSection(
-  data: Omit<SiteContent["categories"], "items">,
-): Promise<ActionResult> {
-  return safeMutate((c) => ({
-    ...c,
-    categories: { ...c.categories, ...data },
-  }));
-}
-
-export async function upsertCategory(
-  item: SiteContent["categories"]["items"][number],
-): Promise<ActionResult> {
-  return safeMutate((c) => {
-    const items = [...c.categories.items];
-    const idx = items.findIndex((i) => i.id === item.id);
-    // Solo editar existentes: el layout es fijo a 3 slots.
-    if (idx < 0) {
-      throw new Error("No se pueden crear categorías nuevas.");
-    }
-    items[idx] = item;
-
-    if (item.large) {
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].id !== item.id) items[i] = { ...items[i], large: false };
-      }
-    } else if (!items.some((i) => i.large) && items.length > 0) {
-      items[0] = { ...items[0], large: true };
-    }
-
-    return { ...c, categories: { ...c.categories, items } };
-  });
-}
-
-export async function addCategory(): Promise<ActionResult> {
-  return {
-    ok: false,
-    error: `El layout usa exactamente ${MAX_CATEGORIES} categorías. Solo puedes editarlas.`,
-  };
-}
-
-export async function deleteCategory(_id: string): Promise<ActionResult> {
-  return {
-    ok: false,
-    error: `No se pueden eliminar categorías. Debes mantener las ${MIN_CATEGORIES} del layout.`,
-  };
 }
 
 export async function saveProductsSection(
@@ -165,102 +81,6 @@ export async function deleteProduct(id: string): Promise<ActionResult> {
   }));
 }
 
-export async function saveFeaturedSection(
-  data: Omit<SiteContent["featured"], "items">,
-): Promise<ActionResult> {
-  return safeMutate((c) => ({
-    ...c,
-    featured: { ...c.featured, ...data },
-  }));
-}
-
-export async function upsertFeatured(
-  item: SiteContent["featured"]["items"][number],
-): Promise<ActionResult> {
-  return safeMutate((c) => {
-    const items = [...c.featured.items];
-    const idx = items.findIndex((i) => i.id === item.id);
-    if (idx >= 0) items[idx] = item;
-    else items.push(item);
-    return { ...c, featured: { ...c.featured, items } };
-  });
-}
-
-export async function addFeatured(): Promise<ActionResult> {
-  return safeMutate((c) => {
-    const item = {
-      id: createId("feat"),
-      handle: "@nuevo",
-      image:
-        "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=800&q=80",
-      alt: "Nueva colección destacada",
-    };
-    return {
-      ...c,
-      featured: { ...c.featured, items: [...c.featured.items, item] },
-    };
-  });
-}
-
-export async function deleteFeatured(id: string): Promise<ActionResult> {
-  return safeMutate((c) => ({
-    ...c,
-    featured: {
-      ...c.featured,
-      items: c.featured.items.filter((i) => i.id !== id),
-    },
-  }));
-}
-
-export async function savePopularSection(
-  data: Pick<SiteContent["popular"], "title" | "portraitImage" | "portraitAlt">,
-): Promise<ActionResult> {
-  return safeMutate((c) => ({
-    ...c,
-    popular: { ...c.popular, ...data },
-  }));
-}
-
-export async function upsertPopularItem(
-  item: SiteContent["popular"]["items"][number],
-): Promise<ActionResult> {
-  return safeMutate((c) => {
-    const items = [...c.popular.items];
-    const idx = items.findIndex((i) => i.id === item.id);
-    if (idx >= 0) items[idx] = item;
-    else items.push(item);
-    return { ...c, popular: { ...c.popular, items } };
-  });
-}
-
-export async function addPopularItem(): Promise<ActionResult> {
-  return safeMutate((c) => {
-    const item = {
-      id: createId("pop"),
-      name: "Nuevo destacado",
-      price: "€0.00",
-      description: "Descripción del producto popular.",
-      image:
-        "https://images.unsplash.com/photo-1523381216714-17e7e681f91e?auto=format&fit=crop&w=700&q=80",
-      alt: "Nuevo destacado",
-    };
-    return {
-      ...c,
-      popular: { ...c.popular, items: [...c.popular.items, item] },
-    };
-  });
-}
-
-export async function deletePopularItem(id: string): Promise<ActionResult> {
-  return safeMutate((c) => ({
-    ...c,
-    popular: {
-      ...c.popular,
-      items: c.popular.items.filter((i) => i.id !== id),
-    },
-  }));
-}
-
 export async function saveFooter(data: SiteContent["footer"]): Promise<ActionResult> {
   return safeMutate((c) => ({ ...c, footer: data }));
 }
@@ -280,30 +100,4 @@ export async function saveContact(
   data: SiteContent["contact"],
 ): Promise<ActionResult> {
   return safeMutate((c) => ({ ...c, contact: data }));
-}
-
-export async function toggleSectionVisible(id: string): Promise<ActionResult> {
-  return safeMutate((c) => ({
-    ...c,
-    sections: c.sections.map((s) =>
-      s.id === id ? { ...s, visible: !s.visible } : s,
-    ),
-  }));
-}
-
-export async function moveSection(
-  id: string,
-  direction: "up" | "down",
-): Promise<ActionResult> {
-  return safeMutate((c) => {
-    const sections = [...c.sections].sort((a, b) => a.order - b.order);
-    const idx = sections.findIndex((s) => s.id === id);
-    if (idx < 0) return c;
-    const swapWith = direction === "up" ? idx - 1 : idx + 1;
-    if (swapWith < 0 || swapWith >= sections.length) return c;
-    const tmp = sections[idx].order;
-    sections[idx] = { ...sections[idx], order: sections[swapWith].order };
-    sections[swapWith] = { ...sections[swapWith], order: tmp };
-    return { ...c, sections };
-  });
 }

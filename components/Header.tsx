@@ -2,9 +2,27 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { ContactSettings, NavLink } from "@/lib/content/types";
 import { siteHref } from "@/lib/content/hrefs";
 import { generalWhatsAppUrl } from "@/lib/contact/whatsapp";
+
+function isShopNavLink(link: NavLink) {
+  const href = siteHref(link.href);
+  return (
+    href.includes("#shop") || /tienda|productos|^shop$/i.test(link.label.trim())
+  );
+}
+
+function scrollToHash(hash: string) {
+  const id = hash.replace(/^#/, "");
+  if (!id) {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+  const el = document.getElementById(id);
+  if (el) el.scrollIntoView({ behavior: "smooth" });
+}
 
 export function Header({
   brand,
@@ -17,9 +35,13 @@ export function Header({
   contact?: ContactSettings;
   solid?: boolean;
 }) {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(solid);
   const [open, setOpen] = useState(false);
   const dark = solid || scrolled;
+
+  const leftLinks = navLinks.filter((link) => !isShopNavLink(link));
+  const rightLinks = navLinks.filter(isShopNavLink);
 
   useEffect(() => {
     if (solid) return;
@@ -42,7 +64,38 @@ export function Header({
     };
   }, [open]);
 
+  // Hash en la URL al cargar / navegar (p. ej. desde otra página)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const { hash } = window.location;
+    if (!hash) return;
+    const timer = window.setTimeout(() => scrollToHash(hash), 80);
+    return () => window.clearTimeout(timer);
+  }, [pathname]);
+
   const waHref = contact ? generalWhatsAppUrl(contact) : null;
+
+  function onNavClick(
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) {
+    setOpen(false);
+    const resolved = siteHref(href);
+    const hashIndex = resolved.indexOf("#");
+    if (hashIndex < 0) return;
+
+    const path = resolved.slice(0, hashIndex) || "/";
+    const hash = resolved.slice(hashIndex);
+    const onHome = pathname === "/" || pathname === "";
+    const targetsHome = path === "/" || path === "";
+
+    // Misma página: Next no hace scroll al hash → lo hacemos nosotros
+    if (onHome && targetsHome) {
+      event.preventDefault();
+      window.history.pushState(null, "", resolved);
+      scrollToHash(hash);
+    }
+  }
 
   return (
     <header
@@ -56,7 +109,7 @@ export function Header({
         {/* Mobile: brand left, menu right */}
         <div className="mx-auto flex max-w-7xl items-center justify-between md:hidden">
           <Link
-            href="/#home"
+            href="/"
             className="font-display text-[1.35rem] font-bold tracking-[0.06em] text-foreground"
             onClick={() => setOpen(false)}
           >
@@ -79,10 +132,11 @@ export function Header({
             <p className="w-[36%] text-[13px] font-bold tracking-wide uppercase text-foreground">
               Creado con pasion y cuidado
             </p>
-            {navLinks.slice(0, 2).map((link) => (
+            {leftLinks.map((link) => (
               <Link
                 key={`d-l-${link.href}-${link.label}`}
                 href={siteHref(link.href)}
+                onClick={(e) => onNavClick(e, link.href)}
                 className="text-[13px] font-bold tracking-wide uppercase text-foreground transition-opacity hover:opacity-70"
               >
                 {link.label}
@@ -92,7 +146,7 @@ export function Header({
 
           <div className="text-center">
             <Link
-              href="/#home"
+              href="/"
               className="font-display text-2xl font-bold tracking-[0.08em] text-foreground"
             >
               {brand}
@@ -100,10 +154,11 @@ export function Header({
           </div>
 
           <nav className="flex items-start justify-end gap-8">
-            {navLinks.slice(2).map((link) => (
+            {rightLinks.map((link) => (
               <Link
                 key={`d-r-${link.href}-${link.label}`}
                 href={siteHref(link.href)}
+                onClick={(e) => onNavClick(e, link.href)}
                 className="text-[13px] font-bold tracking-wide uppercase text-foreground transition-opacity hover:opacity-70"
               >
                 {link.label}
@@ -127,7 +182,7 @@ export function Header({
             <Link
               key={`m-${link.href}-${link.label}`}
               href={siteHref(link.href)}
-              onClick={() => setOpen(false)}
+              onClick={(e) => onNavClick(e, link.href)}
               className="py-3 text-sm font-medium tracking-[0.14em] uppercase text-foreground transition-opacity hover:opacity-60"
             >
               {link.label}

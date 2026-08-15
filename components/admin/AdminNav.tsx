@@ -5,13 +5,8 @@ import { usePathname } from "next/navigation";
 
 const links = [
   { href: "/admin", label: "Panel" },
-  { href: "/admin/hero", label: "Hero" },
-  { href: "/admin/columns", label: "Columns" },
-  { href: "/admin/categorias", label: "Categorías" },
   { href: "/admin/productos", label: "Productos" },
-  { href: "/admin/colecciones", label: "Colecciones" },
-  { href: "/admin/secciones", label: "Secciones" },
-  { href: "/admin/footer", label: "Contacto / Footer" },
+  { href: "/admin/footer", label: "Header / Footer" },
 ];
 
 function isActive(pathname: string, href: string) {
